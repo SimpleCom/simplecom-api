@@ -30,7 +30,7 @@ const app = new Koa();
 let config = {};
 // MySQL connection pool (set up on app initialisation)
 if (process.env.NODE && ~process.env.NODE.indexOf("heroku")){
-  console.log(process.env);
+  console.log('ENV', process.env);
   //Hopefully we get ENV directly from Heroku
 }else {
   config = {
