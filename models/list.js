@@ -17,39 +17,42 @@ class List {
    * @param   {number} id - User id or undefined if not found.
    * @returns {Object} User details.
    */
-  static async get(ctx) {
-    const [list] = await global.db.query('Select id, name from list where userID = :userID', { userID: ctx.state.user.id });
+  static async getLists(ctx) {
+    const [list] = await global.db.query(
+      'Select id, name from contactList where userID = :userID',
+      { userID: ctx.state.user.id }
+    );
     ctx.body = list;
   }
 
-  static async getList(ctx) {
-    const [list] = await global.db.query(`Select id, name, email 
-                                            from listDetail 
-                                           where listID = :listID 
-                                             and listID in (select id from list where userID = :userID)`, { listID: ctx.params.listID, userID: ctx.state.user.id });
-    ctx.body = list;
+  static async createList(ctx) {
+    const [result] = await global.db.query(
+      'Insert into contactList (name, userID) VALUES (:name, :userID)',
+      { name: ctx.request.body.name, userID: ctx.state.user.id }
+    );
+    ctx.body = {
+      id: result.insertId,
+      name: ctx.request.body.name
+    };
   }
 
-  static async create(ctx) {
-      const [result] = await global.db.query(
-          'Insert into list (name, userID) VALUES (:name, :userID)',
-          { name: ctx.request.body.name, userID: ctx.state.user.id }
-      );
-      ctx.body = {
-        id: result.insertId,
-        name: ctx.request.body.name
-      };
+  static async updateList(ctx) {
+    await global.db.query(
+      'Update contactList SET name = :name where id = :id and userID = :userID',
+      { name: ctx.request.body.name, id: ctx.params.listID, userID: ctx.state.user.id }
+    );
+    ctx.body = {
+      id: ctx.params.listID,
+      name: ctx.request.body.name
+    };
   }
 
-  static async update(ctx) {
-      await global.db.query(
-          'Update list SET name = :name where id = :id and userID = :userID',
-          { name: ctx.request.body.name, id: ctx.params.listID, userID: ctx.state.user.id }
-      );
-      ctx.body = {
-          id: ctx.params.listID,
-          name: ctx.request.body.name
-      };
+  static async deleteList(ctx) {
+    await global.db.query(
+      'Delete from contactList where id = :id and userID = :userID',
+      { id: ctx.params.listID, userID: ctx.state.user.id }
+    );
+    ctx.body = null;
   }
 
 }
