@@ -7,10 +7,10 @@
 const router = require('koa-router')(); // router middleware for koa
 const list  = require('../models/list.js');
 
-router.get('/list', list.get);                    // get all lists
-router.post('/list', list.create);                // create new lists
-router.get('/list/:listID', list.getList);        // get list contents
-router.put('/list/:listID', list.update);          // update list name
+router.get('/lists', list.getLists);
+router.post('/lists', list.createList);
+router.put('/lists/:listID', list.updateList);
+router.delete('/lists/:listID', list.deleteList);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
