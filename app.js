@@ -27,14 +27,19 @@ require('dotenv').config(); // loads environment variables from .env file (if av
 
 const app = new Koa();
 
+let config = {};
 // MySQL connection pool (set up on app initialisation)
-const config = {
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_DATABASE,
-};
+if (process.env.NODE && ~process.env.NODE.indexOf("heroku")){
+  //Hopefully we get ENV directly from Heroku
+}else {
+  config = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_DATABASE,
+  };
+}
 global.connectionPool = mysql.createPool(config); // put in global to pass to sub-apps
 
 
