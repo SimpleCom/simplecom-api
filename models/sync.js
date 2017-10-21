@@ -21,20 +21,15 @@ class Sync {
     ctx.body = {};
     await user.getAuth(ctx);
     if (ctx.body.jwt) {
+      list.get(ctx);
+      const listPart = ctx.body; //list.get sets the ctx.body to the list of lists
 
+      ctx.body = { list: listPart };
       //const [list] = await global.db.query('Select id, name from list where userID = :userID', {userID: ctx.state.user.id});
       ctx.body = list;
     }else{
       ctx.body = 'Not Authorized';
     }
-  }
-
-  static async getList(ctx) {
-    const [list] = await global.db.query(`Select id, name, email 
-                                            from listDetail 
-                                           where listID = :listID 
-                                             and listID in (select id from list where userID = :userID)`, { listID: ctx.params.listID, userID: ctx.state.user.id });
-    ctx.body = list;
   }
 
 }
