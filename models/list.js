@@ -68,6 +68,32 @@ class List {
       contacts: contacts
     };
   }
+
+  static async addContact(ctx) {
+    const [[list]] = await global.db.query(
+      'Select userID from contactList where id = :id',
+      { id: ctx.params.listID }
+    );
+
+    if(list.userID !== ctx.state.user.id){
+      ctx.throw(403, 'You do not have permission to modify this list');
+      return;
+    }
+
+    const [result] = await global.db.query(
+      'Insert into contact (listID, name, email) VALUES (:listID, :name, :email)',
+      {
+        listID: ctx.params.listID,
+        name: ctx.request.body.name,
+        email: ctx.request.body.email
+      }
+    );
+    ctx.body = {
+      id: result.insertId,
+      name: ctx.request.body.name,
+      email: ctx.request.body.email
+    };
+  }
 }
 
 

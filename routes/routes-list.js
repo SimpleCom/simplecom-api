@@ -12,6 +12,7 @@ router.post('/lists', list.createList);
 router.put('/lists/:listID', list.updateList);
 router.delete('/lists/:listID', list.deleteList);
 router.get('/lists/:listID/contacts', list.getContacts);
+router.post('/lists/:listID/contacts', list.addContact);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 

@@ -15,11 +15,9 @@ class Crypto {
    * @returns {Object} Sodium keypair.
    */
   static async genKeyPair() {
-    await sodium.ready;
+  await sodium.ready;
 
-    const keyPair = sodium.crypto_box_keypair();
-
-    return keyPair;
+  return sodium.crypto_box_keypair();
   }
 
 }
