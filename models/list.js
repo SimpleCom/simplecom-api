@@ -36,6 +36,14 @@ class List {
     };
   }
 
+  static async getListDetails(ctx) {
+    const [[list]] = await global.db.query(
+      'Select id, name from contactList where id = :id and userID = :userID',
+      { id: ctx.params.listID, userID: ctx.state.user.id }
+    );
+    ctx.body = list;
+  }
+
   static async updateList(ctx) {
     await global.db.query(
       'Update contactList SET name = :name where id = :id and userID = :userID',
@@ -48,10 +56,18 @@ class List {
   }
 
   static async deleteList(ctx) {
+    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+
     await global.db.query(
-      'Delete from contactList where id = :id and userID = :userID',
-      { id: ctx.params.listID, userID: ctx.state.user.id }
+      'Delete from contactList where id = :id',
+      { id: ctx.params.listID }
     );
+
+    await global.db.query(
+      'Delete from contact where listID = :listID',
+      { listID: ctx.params.listID }
+    );
+
     ctx.body = null;
   }
 
@@ -70,15 +86,7 @@ class List {
   }
 
   static async addContact(ctx) {
-    const [[list]] = await global.db.query(
-      'Select userID from contactList where id = :id',
-      { id: ctx.params.listID }
-    );
-
-    if(list.userID !== ctx.state.user.id){
-      ctx.throw(403, 'You do not have permission to modify this list');
-      return;
-    }
+    await List.checkPermissions(ctx.params.listID, ctx.state.user);
 
     const [result] = await global.db.query(
       'Insert into contact (listID, name, email) VALUES (:listID, :name, :email)',
@@ -93,6 +101,45 @@ class List {
       name: ctx.request.body.name,
       email: ctx.request.body.email
     };
+  }
+
+  static async updateContact(ctx) {
+    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+
+    await global.db.query(
+      'Update contact SET name = :name, email = :email where id = :contactID',
+      {
+        contactID: ctx.params.contactID,
+        name: ctx.request.body.name,
+        email: ctx.request.body.email
+      }
+    );
+    ctx.body = {
+      id: ctx.params.listID,
+      name: ctx.request.body.name,
+      email: ctx.request.body.email
+    };
+  }
+
+  static async deleteContact(ctx) {
+    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+
+    await global.db.query(
+      'Delete from contact where id = :id',
+      { id: ctx.params.contactID }
+    );
+    ctx.body = null;
+  }
+
+  static async checkPermissions(listID, user){
+    const [[list]] = await global.db.query(
+      'Select userID from contactList where id = :id',
+      { id: listID }
+    );
+
+    if(list.userID !== user.id){
+      ctx.throw(403, 'You do not have permission to modify this list');
+    }
   }
 }
 
