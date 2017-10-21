@@ -23,8 +23,6 @@ const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
 
-require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
-
 const app = new Koa();
 
 let config = {};
@@ -33,6 +31,7 @@ if (process.env.NODE && ~process.env.NODE.indexOf("heroku")){
   console.log('ENV', process.env);
   //Hopefully we get ENV directly from Heroku
 }else {
+  require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
   config = {
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
