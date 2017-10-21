@@ -55,6 +55,19 @@ class List {
     ctx.body = null;
   }
 
+  static async getContacts(ctx) {
+    const [contacts] = await global.db.query(
+      `SELECT l.name as listName, c.id, c.name, c.email
+      FROM contactList as l INNER JOIN contact as c
+      ON l.id = c.listID
+      WHERE l.userID = :userID AND l.id = :listID`,
+      { listID: ctx.params.listID, userID: ctx.state.user.id }
+    );
+    ctx.body = {
+      listName: contacts[0] && contacts[0].listName,
+      contacts: contacts
+    };
+  }
 }
 
 
