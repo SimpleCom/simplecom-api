@@ -32,10 +32,24 @@ class List {
 
   static async create(ctx) {
       const [result] = await global.db.query(
-          'Insert into list (name, userID) VALUES (:name, :userID);',
+          'Insert into list (name, userID) VALUES (:name, :userID)',
           { name: ctx.request.body.name, userID: ctx.state.user.id }
       );
-      ctx.body = result;
+      ctx.body = {
+        id: result.insertId,
+        name: ctx.request.body.name
+      };
+  }
+
+  static async update(ctx) {
+      await global.db.query(
+          'Update list SET name = :name where id = :id and userID = :userID',
+          { name: ctx.request.body.name, id: ctx.params.listID, userID: ctx.state.user.id }
+      );
+      ctx.body = {
+          id: ctx.params.listID,
+          name: ctx.request.body.name
+      };
   }
 
 }
