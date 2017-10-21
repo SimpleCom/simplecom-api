@@ -151,8 +151,8 @@ app.use(koaLogger(logger, {}));
 
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
-app.use(require('./routes/routes-mail.js'));
-app.use(require('./routes/routes-pdf.js'));
+//app.use(require('./routes/routes-mail.js'));
+//app.use(require('./routes/routes-pdf.js'));
 
 // remaining routes require JWT auth (obtained from /auth and supplied in bearer authorization header)
 

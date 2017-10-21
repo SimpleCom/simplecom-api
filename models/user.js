@@ -9,6 +9,8 @@
 const Lib = require('../lib/lib.js');
 const ModelError = require('./modelerror.js');
 const scrypt = require('scrypt');       // scrypt library
+const jwt = require('jsonwebtoken'); // JSON Web Token implementation
+const randomstring = require('randomstring');
 
 class User {
 
@@ -24,78 +26,9 @@ class User {
     return user[0];
   }
 
-  static async getAll(ctx) {
-    let teamWhere = ''
-    if (ctx.state.user.role < 3) {
-      const [[myTeamID]] = await global.db.query(`Select teamID from user where ID = ${ctx.state.user.id}`);
-      teamWhere = `WHERE teamID = ${myTeamID.teamID}`
-    }
-    const [users] = await global.db.query(`SELECT u.id, u.email, u.fname, u.lname, u.role, u.status, u.teamID, t.name as teamName, t.code as code
-                                             FROM team t left join user u on u.teamID = t.id
-                                            ${teamWhere}
-                                            ORDER BY teamName, lname, fname`);
-    let curCode = 'z4rde#'; //Gibberish to avoid ever matching on the first round
-    let outTeams = [];
-    let curTeam = {};
-    users.forEach((user)=>{
-      //console.log(user);
-      if (user.code != curCode){
-        //This is a new team, set it up
-        curCode = user.code;
-        if (curTeam.name){
-          outTeams.push(curTeam);
-          curTeam = {};
-        }
-        curTeam.name = user.teamName;
-        curTeam.code = user.code;
-        curTeam.users = [];
-      }
-      curTeam.users.push(user);
-    });
-    outTeams.push(curTeam);
-
-    ctx.body = outTeams;
-    ctx.body.root = 'Users';
-  }
-
-  static async getTeams(ctx) {
-    const [teams] = await global.db.query(`Select * From team`);
-    ctx.body = teams;
-    ctx.body.root = 'Teams';
-  }
-
-  static async getRoles(ctx) {
-    const [roles] = await global.db.query(`Select * From userRole where canUse <= ${ctx.state.user.role}`);
-    ctx.body = roles;
-    ctx.body.root = 'UserRoles';
-  }
-
-  static async addTeam(ctx){
-    const result = await global.db.query('insert into team (name, maxUsers, status) values (:teamName, 0, 1)', {
-      teamName: ctx.request.body.name
-    });
-    const id = result[0].insertId;
-    let done = false;
-    while (!done){
-      try {
-        let code = makeCode();
-        const res = await global.db.query('update team set code = :code where id = :id', {code: code, id: id});
-        done = true;
-      } catch (e){
-        console.log('error!!!', e);
-        done = false;
-      }
-    }
-
-
-    ctx.body = result;
-    ctx.body.root = 'Result';
-
-  }
-
   static async save(ctx) {
     console.log(ctx.request.body);
-    if(ctx.request.body.password && ctx.request.body.password.length > 3){
+    if (ctx.request.body.password && ctx.request.body.password.length > 3) {
       var newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.password, {N: 16, r: 8, p: 2});
       const resultPass = await global.db.query('update user set password = :password where id = :id', {
@@ -132,18 +65,66 @@ class User {
    * @param   {string!number} value - Value to match against field.
    * @returns {Object[]}      Users details.
    */
-  static async getBy(field, value) {
+
+  static async getAuth(ctx) {
+    console.log(ctx.request.body);
+    let user = null;
+    if (ctx.request.body.refreshToken) {
+      [user] = await User.getByToken(ctx.request.body.refreshToken);
+      if (!user) {
+        [user] = await User.getBy('refreshToken', ctx.request.body.refreshToken);
+        if (!user) ctx.throw(401, 'Bad Token not found');
+      }
+    } else {
+      [user] = await User.getByUname(ctx.request.body.uname);
+      console.log(user);
+      if (!user) ctx.throw(401, 'Username/password not found');
+      //console.log('user', user);
+      //console.log('test', user);
+      // check password
+      try {
+        const match = await scrypt.verifyKdf(Buffer.from(user.password, 'base64'), ctx.request.body.pass);
+        if (!match) ctx.throw(401, 'Username/password not found.');
+      } catch (e) { // e.g. "data is not a valid scrypt-encrypted block"
+        //ctx.throw(404, e.message);
+        ctx.throw(401, 'Username/password not found!');
+      }
+    }
+
+    try {
+      const payload = {
+        id: user.id,                 // to get user details
+      };
+      console.log('env', process.env.TOKEN_TIME);
+      const token = jwt.sign(payload, process.env.JWT_KEY, {expiresIn: process.env.TOKEN_TIME});
+      const refreshToken = randomstring.generate(50);
+      const decoded = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
+      const ret = User.addToken(user.id, refreshToken);
+
+      ctx.body = {
+        jwt: token,
+        root: 'Auth',
+        role: user.role,
+        refreshToken: refreshToken,
+        expires: decoded.exp,
+      };
+    } catch (e) { // e.g. "data is not a valid scrypt-encrypted block"
+      ctx.throw(404, e.message);
+      //ctx.throw(404, 'Username/password not found!');
+    }
+  }
+
+  static async getByUname(value) {
     try {
 
-      const sql = `Select * From user where ${field} = :${field} Order By fname, lname`;
-      const [users] = await global.db.query(sql, {[field]: value});
-
+      const sql = `Select * From user where uname = :uname`;
+      const [users] = await global.db.query(sql, {uname: value});
       return users;
 
     } catch (e) {
       switch (e.code) {
         case 'ER_BAD_FIELD_ERROR':
-          throw new ModelError(403, 'Unrecognised User field ' + field);
+          throw new ModelError(403, 'Unrecognised User field uname.');
         default:
           Lib.logException('User.getBy', e);
           throw new ModelError(500, e.message);
@@ -253,46 +234,48 @@ class User {
   //   }
   // }
 
-  static async register (ctx){
-    console.log(ctx.request.body);
+  static async register(ctx) {
+    console.log(ctx.request.body.uname);
+    console.log(ctx.request.body.pass)
     let result;
     try {
       var newPassword = '';
-      while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.password, {N: 16, r: 8, p: 2});
-      [result] = await global.db.query(`insert into user (fname, lname, email, password, teamID, role, status) values (:fname, :lname, :email, :password, :teamID, :role, :status)`, {fname: ctx.request.body.fname, lname: ctx.request.body.lname, email: ctx.request.body.email, password: newPassword, teamID: ctx.request.body.teamID, role: 1, status: 1 });
-    } catch(e){
+      while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
+      [result] = await global.db.query(`insert into user (uname, password) values (:uname, :pass)`, {
+        uname: ctx.request.body.uname,
+        pass: newPassword.toString("base64")
+      });
+    } catch (e) {
       console.log('error', e);
       result = [{error: 1}];
     }
     ctx.body = result; //Return only the ID
     ctx.body.root = 'Result';
-
-
-  }
-
-  static async validateCode(ctx) {
-    let result = [];
-    try {
-      [result] = await global.db.query('select id, name from team where code = :code', {code: ctx.params.code});
-    } catch(e){
-      result = [{id: 0}];
-    }
-    if (!result[0]){
-      result = [{id: 0}];
-    }
-    ctx.body = result[0]; //Return only the ID
-    ctx.body.root = 'Result';
   }
 }
+//   static async validateCode(ctx) {
+//     let result = [];
+//     try {
+//       [result] = await global.db.query('select id, name from team where code = :code', {code: ctx.params.code});
+//     } catch(e){
+//       result = [{id: 0}];
+//     }
+//     if (!result[0]){
+//       result = [{id: 0}];
+//     }
+//     ctx.body = result[0]; //Return only the ID
+//     ctx.body.root = 'Result';
+//   }
+// }
 
-let makeCode = function() {
+const makeCode = function() {
   var text = "";
   var possible = "BCDFGHJKLMNPQRSTVWXYZ0123456789";
   for (var i = 0; i < 6; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
 
   return text;
-}
+};
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
