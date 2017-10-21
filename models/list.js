@@ -36,6 +36,14 @@ class List {
     };
   }
 
+  static async getListDetails(ctx) {
+    const [[list]] = await global.db.query(
+      'Select id, name from contactList where id = :id and userID = :userID',
+      { id: ctx.params.listID, userID: ctx.state.user.id }
+    );
+    ctx.body = list;
+  }
+
   static async updateList(ctx) {
     await global.db.query(
       'Update contactList SET name = :name where id = :id and userID = :userID',
@@ -48,10 +56,18 @@ class List {
   }
 
   static async deleteList(ctx) {
+    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+
     await global.db.query(
-      'Delete from contactList where id = :id and userID = :userID',
-      { id: ctx.params.listID, userID: ctx.state.user.id }
+      'Delete from contactList where id = :id',
+      { id: ctx.params.listID }
     );
+
+    await global.db.query(
+      'Delete from contact where listID = :listID',
+      { listID: ctx.params.listID }
+    );
+
     ctx.body = null;
   }
 
@@ -90,7 +106,7 @@ class List {
   static async updateContact(ctx) {
     await List.checkPermissions(ctx.params.listID, ctx.state.user);
 
-    const [result] = await global.db.query(
+    await global.db.query(
       'Update contact SET name = :name, email = :email where id = :contactID',
       {
         contactID: ctx.params.contactID,

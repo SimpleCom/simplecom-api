@@ -9,6 +9,7 @@ const list  = require('../models/list.js');
 
 router.get('/lists', list.getLists);
 router.post('/lists', list.createList);
+router.get('/lists/:listID', list.getListDetails);
 router.put('/lists/:listID', list.updateList);
 router.delete('/lists/:listID', list.deleteList);
 router.get('/lists/:listID/contacts', list.getContacts);
