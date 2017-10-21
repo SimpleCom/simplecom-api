@@ -18,7 +18,7 @@
     "apidoc": "apidoc -i app-api -o app-api/apidoc/apidoc"
   },
   "engines": {
-    "node": "^7.6.0"
+    "node": ">=7.6.0"
   },
   "dependencies": {
     "@sendgrid/mail": "^6.1.3",
