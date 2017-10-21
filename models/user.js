@@ -26,32 +26,6 @@ class User {
     return user[0];
   }
 
-  static async save(ctx) {
-    console.log(ctx.request.body);
-    if (ctx.request.body.password && ctx.request.body.password.length > 3) {
-      var newPassword = '';
-      while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.password, {N: 16, r: 8, p: 2});
-      const resultPass = await global.db.query('update user set password = :password where id = :id', {
-        id: ctx.request.body.id,
-        password: newPassword
-      });
-      console.log(ctx.request.body.id);
-      console.log(newPassword);
-
-    }
-    const result = await global.db.query('update user set email = :email, fname = :fname, lname = :lname, role = :role, status = :status, teamID = :teamID where id = :id', {
-      id: ctx.params.userID,
-      email: ctx.request.body.email,
-      fname: ctx.request.body.fname,
-      lname: ctx.request.body.lname,
-      role: ctx.request.body.role,
-      status: ctx.request.body.status,
-      teamID: ctx.request.body.teamID
-    });
-    ctx.body = result;
-    ctx.body.root = 'Result';
-  }
-
   static async deleteUser(ctx) {
     const result = await global.db.query('delete from user where id = :id', {id: ctx.params.userID});
     ctx.body = result;
@@ -66,7 +40,6 @@ class User {
    */
 
   static async getAuth(ctx) {
-    console.log(ctx.request.body);
     let user = null;
     if (ctx.request.body.refreshToken) {
       [user] = await User.getByToken(ctx.request.body.refreshToken);
@@ -76,7 +49,6 @@ class User {
       }
     } else {
       [user] = await User.getByUname(ctx.request.body.uname);
-      console.log(user);
       if (!user) ctx.throw(401, 'Username/password not found');
       //console.log('user', user);
       //console.log('test', user);
@@ -147,92 +119,6 @@ class User {
     return users;
   }
 
-  // /**
-  //  * Creates new User record.
-  //  *
-  //  * @param   {Object} values - User details.
-  //  * @returns {number} New user id.
-  //  * @throws  Error on validation or referential integrity errors.
-  //  */
-  // static async insert(values) {
-  //   try {
-  //     var newPassword = '';
-  //     while (newPassword.length < 10) newPassword = scrypt.kdfSync(values.password, {N: 16, r: 8, p: 2});
-  //
-  //     values.password = newPassword;
-  //     const [result] = await global.db.query('Insert Into user Set ?', [values]);
-  //     //console.log('User.insert', result.insertId, new Date); // eg audit trail?
-  //     return result.insertId;
-  //
-  //   } catch (e) {
-  //     //console.log('error!!!', e.code);
-  //     switch (e.code) { // just use default MySQL messages for now
-  //       case 'ER_BAD_NULL_ERROR':
-  //       case 'ER_NO_REFERENCED_ROW_2':
-  //       case 'ER_NO_DEFAULT_FOR_FIELD':
-  //         throw new ModelError(403, e.message); // Forbidden
-  //       case 'ER_DUP_ENTRY':
-  //         throw new ModelError(409, e.message); // Conflict, already exists
-  //       case 'ER_BAD_FIELD_ERROR':
-  //         throw new ModelError(500, e.message); // Internal Server Error for programming errors
-  //       default:
-  //         Lib.logException('User.insert', e);
-  //         throw new ModelError(500, e.message); // Internal Server Error for uncaught exception
-  //     }
-  //   }
-  // }
-  //
-  // /**
-  //  * Update User details.
-  //  *
-  //  * @param  {number} id - User id.
-  //  * @param  {Object} values - User details.
-  //  * @throws Error on referential integrity errors.
-  //  */
-  // static async update(id, values) {
-  //   try {
-  //
-  //     await global.db.query('Update user Set ? Where id = ?', [values, id]);
-  //     //console.log('User.update', id, new Date); // eg audit trail?
-  //
-  //   } catch (e) {
-  //     switch (e.code) { // just use default MySQL messages for now
-  //       case 'ER_BAD_NULL_ERROR':
-  //       case 'ER_DUP_ENTRY':
-  //       case 'ER_ROW_IS_REFERENCED_2':
-  //       case 'ER_NO_REFERENCED_ROW_2':
-  //         throw new ModelError(403, e.message); // Forbidden
-  //       case 'ER_BAD_FIELD_ERROR':
-  //         throw new ModelError(500, e.message); // Internal Server Error for programming errors
-  //       default:
-  //         Lib.logException('User.update', e);
-  //         throw new ModelError(500, e.message); // Internal Server Error for uncaught exception
-  //     }
-  //   }
-  // }
-  //
-  //
-  // /**
-  //  * Delete User record.
-  //  *
-  //  * @param  {number} id - User id.
-  //  * @throws Error
-  //  */
-  // static async delete(id) {
-  //   try {
-  //
-  //     await global.db.query('Delete From user Where id = ?', {id});
-  //     //console.log('User.delete', id, new Date); // eg audit trail?
-  //
-  //   } catch (e) {
-  //     switch (e.code) {
-  //       default:
-  //         Lib.logException('User.delete', e);
-  //         throw new ModelError(500, e.message); // Internal Server Error
-  //     }
-  //   }
-  // }
-
   static async register(ctx) {
     console.log(ctx.request.body.uname);
     console.log(ctx.request.body.pass)
@@ -252,20 +138,6 @@ class User {
     ctx.body.root = 'Result';
   }
 }
-//   static async validateCode(ctx) {
-//     let result = [];
-//     try {
-//       [result] = await global.db.query('select id, name from team where code = :code', {code: ctx.params.code});
-//     } catch(e){
-//       result = [{id: 0}];
-//     }
-//     if (!result[0]){
-//       result = [{id: 0}];
-//     }
-//     ctx.body = result[0]; //Return only the ID
-//     ctx.body.root = 'Result';
-//   }
-// }
 
 const makeCode = function() {
   var text = "";

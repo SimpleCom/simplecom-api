@@ -26,21 +26,16 @@ const koaLogger = require('koa-bunyan');   // logging
 
 const app = new Koa();
 
-let config = {};
 // MySQL connection pool (set up on app initialisation)
-if (process.env.NODE && ~process.env.NODE.indexOf('heroku')) {
-  console.log('ENV', process.env);
-  //Hopefully we get ENV directly from Heroku
-} else {
-  require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
-  config = {
-    host: process.env.DB_HOST,
-    port: process.env.DB_PORT,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_DATABASE,
-  };
-}
+require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
+const config = {
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_DATABASE,
+};
+
 global.connectionPool = mysql.createPool(config); // put in global to pass to sub-apps
 
 
