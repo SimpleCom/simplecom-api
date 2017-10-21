@@ -16,11 +16,8 @@ class Crypto {
    */
   static async genKeyPair() {
     await sodium.ready;
-
-    const keyPair = sodium.crypto_box_keypair();
-    console.log(keyPair);
-
-    return keyPair;
+    
+    return sodium.crypto_box_keypair();
   }
 
 }
