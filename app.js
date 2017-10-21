@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 /* Simple app to explore Node.js + Koa + MySQL basics for CRUD admin + API                        */
 /*                                                                                                */
@@ -184,8 +185,8 @@ app.use(require('./routes/routes-user.js'));
 /* create server - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 
-app.listen(process.env.PORT || 3000);
-console.info(`${process.version} listening on port ${process.env.PORT || 3000} (${app.env}/${config.database})`);
+app.listen(process.env.PORT || 3001);
+console.info(`${process.version} listening on port ${process.env.PORT || 3001} (${app.env}/${config.database})`);
 
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
