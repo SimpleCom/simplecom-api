@@ -8,6 +8,7 @@
 
 const user = require('./user.js');
 const list = require('./list.js');
+const crypto = require('./crypto.js');
 
 class Sync {
 
@@ -22,9 +23,13 @@ class Sync {
     await user.getAuth(ctx);
     if (ctx.body.jwt) {
       ctx.state.user = ctx.body;
+
+      const pair = await crypto.genKeyPair();
+
       await list.getLists(ctx);
       const listPart = ctx.body; //list.get sets the ctx.body to the list of lists
-      ctx.body = { list: listPart };
+      ctx.body = { list: listPart,
+                   publicKey: pair.publicKey };
     }else{
       ctx.body = 'Not Authorized';
     }
