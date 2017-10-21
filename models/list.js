@@ -18,8 +18,9 @@ class List {
    * @returns {Object} User details.
    */
   static async get(ctx) {
+    console.log('get list');
     const [list] = await global.db.query('Select id, name from list where userID = :userID', { userID: ctx.state.user.id });
-    return list;
+    ctx.body = list;
   }
 
   static async getList(ctx) {
@@ -27,7 +28,7 @@ class List {
                                             from listDetail 
                                            where listID = :listID 
                                              and listID in (select id from list where userID = :userID)`, { listID: ctx.params.listID, userID: ctx.state.user.id });
-    return list;
+    ctx.body = list;
   }
 
 }

@@ -55,7 +55,6 @@ class User {
   static async deleteUser(ctx) {
     const result = await global.db.query('delete from user where id = :id', {id: ctx.params.userID});
     ctx.body = result;
-    ctx.body.root = 'Result';
   }
 
   /**

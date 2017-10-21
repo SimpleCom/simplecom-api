@@ -156,8 +156,6 @@ app.use(async function mysqlConnection(ctx, next) {
 
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
-//app.use(require('./routes/routes-mail.js'));
-//app.use(require('./routes/routes-pdf.js'));
 
 // remaining routes require JWT auth (obtained from /auth and supplied in bearer authorization header)
 
@@ -179,6 +177,7 @@ app.use(async function verifyJwt(ctx, next) {
   await next();
 });
 
+app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
 
 
