@@ -100,6 +100,7 @@ class User {
       const ret = User.addToken(user.id, refreshToken);
 
       ctx.body = {
+        id: user.id,
         jwt: token,
         root: 'Auth',
         role: user.role,
