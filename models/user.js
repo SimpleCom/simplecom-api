@@ -94,7 +94,6 @@ class User {
       const payload = {
         id: user.id,                 // to get user details
       };
-      console.log('env', process.env.TOKEN_TIME);
       const token = jwt.sign(payload, process.env.JWT_KEY, {expiresIn: process.env.TOKEN_TIME});
       const refreshToken = randomstring.generate(50);
       const decoded = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token

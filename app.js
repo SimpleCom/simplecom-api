@@ -28,10 +28,10 @@ const app = new Koa();
 
 let config = {};
 // MySQL connection pool (set up on app initialisation)
-if (process.env.NODE && ~process.env.NODE.indexOf("heroku")){
+if (process.env.NODE && ~process.env.NODE.indexOf('heroku')) {
   console.log('ENV', process.env);
   //Hopefully we get ENV directly from Heroku
-}else {
+} else {
   require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
   config = {
     host: process.env.DB_HOST,
@@ -157,6 +157,7 @@ app.use(async function mysqlConnection(ctx, next) {
 
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
+app.use(require('./routes/routes-sync.js'));
 
 // remaining routes require JWT auth (obtained from /auth and supplied in bearer authorization header)
 
