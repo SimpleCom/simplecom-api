@@ -38,8 +38,10 @@ class S3 {
         { sBucket: bucket, pBucket: bucket }
     );
 
-    await mkdirp(`/decrypt/${user.id}/`);
-    const file = fs.createWriteStream(`/decrypt/${user.id}/${fileKey}`);
+    const dir = `../decrypt/${user.id}/`;
+    const res = await mkdirp(dir);
+    console.log(res, dir);
+    const file = fs.createWriteStream(`${dir}${fileKey}`);
 
     s3.getObject(params).createReadStream().on('error', function(err){
       console.log(err);
