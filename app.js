@@ -176,6 +176,7 @@ app.use(async function verifyJwt(ctx, next) {
 
 app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
+app.use(require('./routes/routes-codes.js'));
 
 
 /* create server - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
