@@ -70,14 +70,14 @@ class Sync {
       );
       ctx.body = {
         lists: lists,
-        secure: {
+        s: {
           s3Bucket: user.secureS3Bucket,
           awsAccessKey: user.secureAwsAccessKey,
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey,
         },
-        public: {
+        p: {
           s3Bucket: user.publicS3Bucket,
           awsAccessKey: user.publicAwsAccessKey,
           awsSecret: user.publicAwsSecret,
