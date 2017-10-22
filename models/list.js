@@ -137,7 +137,7 @@ class List {
       { id: listID }
     );
 
-    if(list.userID !== user.id){
+    if(!list || list.userID !== user.id){
       ctx.throw(403, 'You do not have permission to modify this list');
     }
   }
