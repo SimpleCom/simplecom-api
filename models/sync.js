@@ -35,10 +35,8 @@ class Sync {
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
 
-      const bucketNameRegex = /user-data-[a-z0-9\-]+/;
-
-      const secureBucket = bucketNameRegex.exec((await S3.createUserBucket()).Location)[0];
-      const publicBucket = bucketNameRegex.exec((await S3.createUserBucket()).Location)[0];
+      const secureBucket = await S3.createUserBucket();
+      const publicBucket = await S3.createUserBucket();
 
       await global.db.query(
         `Update user SET

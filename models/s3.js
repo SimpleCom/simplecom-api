@@ -36,8 +36,8 @@ class S3 {
 
     //Find bucket in the user table
     const [[user]] = await global.db.query(
-        'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
-        { sBucket: bucket, pBucket: bucket }
+      'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
+      { sBucket: bucket, pBucket: bucket }
     );
 
     const dir = __dirname + `/../decrypt/${user.id}/`;
@@ -56,7 +56,7 @@ class S3 {
 
     const s3 = new aws.S3();
 
-    const params = {
+    const createParams = {
       Bucket: `user-data-${uuidv4()}`,
       ACL: "private",
       CreateBucketConfiguration: {
@@ -64,12 +64,37 @@ class S3 {
       }
     };
 
-    return await new Promise((resolve, reject) => {
-      s3.createBucket(params, function (err, data) {
+    const bucketUrl = (await new Promise((resolve, reject) => {
+      s3.createBucket(createParams, function (err, data) {
         if (err) reject(err);
         else resolve(data);
       });
-    });
+    })).Location;
+
+    const bucketNameRegex = /user-data-[a-z0-9\-]+/;
+    const bucketName = bucketNameRegex.exec(bucketUrl)[0];
+
+    const notificationParams = {
+      Bucket: bucketName,
+      NotificationConfiguration: {
+        LambdaFunctionConfigurations: [
+          {
+            Events: ['s3:ObjectCreated:CompleteMultipartUpload'],
+            LambdaFunctionArn: 'CatchS3Upload',
+            Id: `lamda-upload-notification-${bucketName}`
+          },
+        ]
+      }
+    };
+
+    // await new Promise((resolve, reject) => {
+    //   s3.putBucketNotificationConfiguration(notificationParams, function(err, data) {
+    //     if (err) reject(err);
+    //     else resolve(data);
+    //   });
+    // });
+
+    return bucketName;
   }
 
   static async deleteUserBucket(bucketName) {
@@ -80,10 +105,14 @@ class S3 {
       Bucket: bucketName
     };
 
-    return await new Promise((resolve, reject) => {
+    return await new Promise(resolve => {
       s3.deleteBucket(params, function (err, data) {
-        if (err) reject(err);
-        else resolve(data);
+        if (err){
+          console.log(`Unable to delete bucket ${bucketName}`, err);
+          resolve();
+        } else {
+          resolve(data);
+        }
       });
     });
   }
