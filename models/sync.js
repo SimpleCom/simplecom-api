@@ -60,13 +60,11 @@ class Sync {
         secureAwsSecret,
         securePasscode,
         secureRsaPublicKey,
-        secureRsaPrivateKey,
         publicS3Bucket,
         publicAwsAccessKey,
         publicAwsSecret,
         publicPasscode,
-        publicRsaPublicKey,
-        publicRsaPrivateKey
+        publicRsaPublicKey
         From user Where id = :id`,
         {id: ctx.state.user.id}
       );
@@ -78,7 +76,6 @@ class Sync {
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey,
-          rsaPrivateKey: user.secureRsaPrivateKey
         },
         public: {
           s3Bucket: user.publicS3Bucket,
@@ -86,7 +83,6 @@ class Sync {
           awsSecret: user.publicAwsSecret,
           passcode: user.publicPasscode,
           rsaPublicKey: user.publicRsaPublicKey,
-          rsaPrivateKey: user.publicRsaPrivateKey
         }
       };
     }else{
