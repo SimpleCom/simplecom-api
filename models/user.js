@@ -11,6 +11,7 @@ const ModelError = require('./modelerror.js');
 const scrypt = require('scrypt');       // scrypt library
 const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const randomstring = require('randomstring');
+const fs = require('fs-extra');
 
 class User {
 
@@ -136,6 +137,16 @@ class User {
     }
     ctx.body = result; //Return only the ID
     ctx.body.root = 'Result';
+  }
+
+  static async addLogo(ctx) {
+    let imageFile = ctx.request.body.files.uploadFile;
+
+    await fs.copy(imageFile.path, `uploads/logos/${ctx.params.userID}/${imageFile.name}`)
+      .then(() => {
+        ctx.body = 'Success';
+      })
+      .catch(err => console.log(err))
   }
 }
 

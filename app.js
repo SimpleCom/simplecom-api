@@ -62,7 +62,7 @@ app.use(async function robots(ctx, next) {
 });
 
 // parse request body into ctx.request.body
-app.use(body());
+app.use(body({ multipart: true }));
 
 // set signed cookie keys for JWT cookie & session cookie
 app.keys = ['7R%k2s*d$ehj76w@ere'];

@@ -13,7 +13,7 @@ const user  = require('../models/user.js');
 //router.get('/user/getteams', user.getTeams);    // get all user roles
 //router.put('/user/save/:userID', user.save);    // update a user
 //router.post('/user/addTeam', user.addTeam);    // update a user
-
+router.post('/user/:userID/logo', user.addLogo);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = router.middleware();
