@@ -19,10 +19,28 @@ class List {
    */
   static async getLists(ctx) {
     const [list] = await global.db.query(
-      'Select id, name from contactList where userID = :userID',
+      `SELECT l.id as listID, l.name as listName, c.id, c.name, c.email
+      FROM contactList as l INNER JOIN contact as c
+      ON l.id = c.listID
+      WHERE l.userID = :userID`,
       { userID: ctx.state.user.id }
     );
-    ctx.body = list;
+
+    ctx.body = Object.values(list.reduce((nestedList, value) => {
+      const contact = {
+        id: value.id,
+        name: value.name,
+        email: value.email
+      };
+      nestedList[value.listID] ?
+        nestedList[value.listID].contacts.push(contact) :
+        nestedList[value.listID] = {
+          id: value.listID,
+          name: value.listName,
+          contacts: [contact]
+        };
+      return nestedList;
+    }, {}));
   }
 
   static async createList(ctx) {
