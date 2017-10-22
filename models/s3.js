@@ -38,7 +38,7 @@ class S3 {
         { sBucket: bucket, pBucket: bucket }
     );
 
-    const dir = `../decrypt/${user.id}/`;
+    const dir = __dirname + `/../decrypt/${user.id}/`;
     const res = await mkdirp(dir);
     console.log(res, dir);
     const file = fs.createWriteStream(`${dir}${fileKey}`);
