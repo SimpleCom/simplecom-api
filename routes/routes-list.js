@@ -7,7 +7,7 @@
 const router = require('koa-router')(); // router middleware for koa
 const list  = require('../models/list.js');
 
-router.get('/lists', list.getLists);
+router.get('/lists', list.getListsWithContacts);
 router.post('/lists', list.createList);
 router.get('/lists/:listID', list.getListDetails);
 router.put('/lists/:listID', list.updateList);
