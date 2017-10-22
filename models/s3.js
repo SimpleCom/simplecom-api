@@ -55,7 +55,7 @@ class S3 {
   static async createUserBucket() {
 
     const s3 = new aws.S3();
-    
+
     const bucketUrl = (await new Promise((resolve, reject) => {
       const params = {
         Bucket: `user-data-${uuidv4()}`,

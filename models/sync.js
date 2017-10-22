@@ -19,24 +19,25 @@ class Sync {
     if (ctx.body.jwt) {
       ctx.state.user = ctx.body;
 
-      const [[userBuckets]] = await global.db.query(
-        `Select
-        secureS3Bucket,
-        secureAwsAccessKey,
-        publicS3Bucket,
-        publicAwsAccessKey
-        From user Where id = :id`,
-        {id: ctx.state.user.id}
-      );
+      // TODO: change back when s3 lambda events are working
+      // const [[userBuckets]] = await global.db.query(
+      //   `Select
+      //   secureS3Bucket,
+      //   secureAwsAccessKey,
+      //   publicS3Bucket,
+      //   publicAwsAccessKey
+      //   From user Where id = :id`,
+      //   {id: ctx.state.user.id}
+      // );
 
-      await S3.deleteUserBucket(userBuckets.secureS3Bucket);
-      await S3.deleteUserBucket(userBuckets.publicS3Bucket);
+      // await S3.deleteUserBucket(userBuckets.secureS3Bucket); // TODO: change back when s3 lambda events are working
+      // await S3.deleteUserBucket(userBuckets.publicS3Bucket); // TODO: change back when s3 lambda events are working
 
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
 
-      const secureBucket = await S3.createUserBucket();
-      const publicBucket = await S3.createUserBucket();
+      const secureBucket = null; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
+      const publicBucket = null; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
 
       await global.db.query(
         `Update user SET
@@ -86,16 +87,17 @@ class Sync {
         {id: ctx.state.user.id}
       );
       ctx.body = {
+        userId: ctx.state.user.id, // TODO: remove when s3 lambda events are working
         lists: lists,
         s: {
-          s3Bucket: user.secureS3Bucket,
+          s3Bucket: 'simplecom', //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.secureAwsAccessKey,
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey,
         },
         p: {
-          s3Bucket: user.publicS3Bucket,
+          s3Bucket: 'simplecom', //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.publicAwsAccessKey,
           awsSecret: user.publicAwsSecret,
           passcode: user.publicPasscode,
