@@ -9,6 +9,7 @@
 const User = require('./user.js');
 const list = require('./list.js');
 const crypto = require('./crypto.js');
+const S3 = require('./s3.js');
 
 class Sync {
 
@@ -20,6 +21,9 @@ class Sync {
 
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
+
+      const secureBucket = await S3.createUserBucket();
+      const publicBucket = await S3.createUserBucket();
 
       await global.db.query(
         `Update user SET
@@ -36,16 +40,16 @@ class Sync {
         Where id = :id`,
         {
           id: ctx.state.user.id,
-          secureS3Bucket: null, // secureS3Bucket,
-          secureAwsAccessKey: null, // secureAwsAccessKey,
-          secureAwsSecret: null, // secureAwsSecret,
-          secureRsaPublicKey: crypto.getPublicKey(securePair), // securePair.publicKey,
-          secureRsaPrivateKey: crypto.getPrivateKey(securePair), // securePair.privateKey,
-          publicS3Bucket: null, // publicS3Bucket,
-          publicAwsAccessKey: null, // publicAwsAccessKey,
-          publicAwsSecret: null, // publicAwsSecret,
-          publicRsaPublicKey: crypto.getPublicKey(publicPair), // publicPair.publicKey,
-          publicRsaPrivateKey: crypto.getPrivateKey(publicPair) // publicPair.privateKey
+          secureS3Bucket: secureBucket.Location,
+          secureAwsAccessKey: process.env.AWS_ACCESS,
+          secureAwsSecret: process.env.AWS_SECRET,
+          secureRsaPublicKey: crypto.getPublicKey(securePair),
+          secureRsaPrivateKey: crypto.getPrivateKey(securePair),
+          publicS3Bucket: publicBucket.Location,
+          publicAwsAccessKey: process.env.AWS_ACCESS,
+          publicAwsSecret: process.env.AWS_SECRET,
+          publicRsaPublicKey: crypto.getPublicKey(publicPair),
+          publicRsaPrivateKey: crypto.getPrivateKey(publicPair)
         }
       );
 
@@ -91,7 +95,6 @@ class Sync {
   }
 
 }
-
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 

@@ -7,7 +7,14 @@
 'use strict';
 const fs = require('fs');
 const aws = require('aws-sdk');
-const mkdirp = require('mkdirp-promise')
+const mkdirp = require('mkdirp-promise');
+const uuidv4 = require('uuid/v4');
+
+aws.config.update({
+  accessKeyId: process.env.AWS_ACCESS,
+  secretAccessKey: process.env.AWS_SECRET,
+  region: process.env.AWS_REGION
+});
 
 class S3 {
 
@@ -19,11 +26,6 @@ class S3 {
    */
   static async hit(ctx) {
 
-    aws.config.update({
-      accessKeyId: process.env.AWS_ACCESS,
-      secretAccessKey: process.env.AWS_SECRET,
-      region: process.env.AWS_REGION
-    });
     const bucket = ctx.params.bucket;
     const fileKey = ctx.params.key;
     const s3 = new aws.S3();
@@ -48,6 +50,26 @@ class S3 {
     }).pipe(file);
 
     ctx.body = 'Success';
+  }
+
+  static async createUserBucket() {
+
+    const s3 = new aws.S3();
+
+    const params = {
+      Bucket: `user-data-${uuidv4()}`,
+      ACL: "private",
+      CreateBucketConfiguration: {
+        LocationConstraint: 'us-west-2'
+      }
+    };
+
+    return await new Promise((resolve, reject) => {
+      s3.createBucket(params, function (err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
   }
 
 }
