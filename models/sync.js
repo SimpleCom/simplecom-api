@@ -18,8 +18,8 @@ class Sync {
     if (ctx.body.jwt) {
       ctx.state.user = ctx.body;
 
-      const securePair = await crypto.genKeyPair();
-      const publicPair = await crypto.genKeyPair();
+      const securePair = crypto.genKeyPair();
+      const publicPair = crypto.genKeyPair();
 
       await global.db.query(
         `Update user SET
@@ -39,13 +39,13 @@ class Sync {
           secureS3Bucket: null, // secureS3Bucket,
           secureAwsAccessKey: null, // secureAwsAccessKey,
           secureAwsSecret: null, // secureAwsSecret,
-          secureRsaPublicKey: null, // securePair.publicKey,
-          secureRsaPrivateKey: null, // securePair.privateKey,
+          secureRsaPublicKey: crypto.getPublicKey(securePair), // securePair.publicKey,
+          secureRsaPrivateKey: crypto.getPrivateKey(securePair), // securePair.privateKey,
           publicS3Bucket: null, // publicS3Bucket,
           publicAwsAccessKey: null, // publicAwsAccessKey,
           publicAwsSecret: null, // publicAwsSecret,
-          publicRsaPublicKey: null, // publicPair.publicKey,
-          publicRsaPrivateKey: null // publicPair.privateKey
+          publicRsaPublicKey: crypto.getPublicKey(publicPair), // publicPair.publicKey,
+          publicRsaPrivateKey: crypto.getPrivateKey(publicPair) // publicPair.privateKey
         }
       );
 
