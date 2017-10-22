@@ -56,7 +56,7 @@ class List {
   }
 
   static async deleteList(ctx) {
-    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
     await global.db.query(
       'Delete from contactList where id = :id',
@@ -86,7 +86,7 @@ class List {
   }
 
   static async addContact(ctx) {
-    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
     const [result] = await global.db.query(
       'Insert into contact (listID, name, email) VALUES (:listID, :name, :email)',
@@ -104,7 +104,7 @@ class List {
   }
 
   static async updateContact(ctx) {
-    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
     await global.db.query(
       'Update contact SET name = :name, email = :email where id = :contactID',
@@ -122,7 +122,7 @@ class List {
   }
 
   static async deleteContact(ctx) {
-    await List.checkPermissions(ctx.params.listID, ctx.state.user);
+    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
     await global.db.query(
       'Delete from contact where id = :id',
@@ -131,7 +131,7 @@ class List {
     ctx.body = null;
   }
 
-  static async checkPermissions(listID, user){
+  static async checkPermissions(ctx, listID, user){
     const [[list]] = await global.db.query(
       'Select userID from contactList where id = :id',
       { id: listID }
