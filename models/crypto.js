@@ -6,6 +6,7 @@
 'use strict';
 
 const rsa = require('node-rsa');
+const fs = require('fs-extra');
 
 class Crypto {
 
@@ -50,6 +51,18 @@ class Crypto {
    static rsaDecrypt(key, buffer) {
     return key.decrypt(buffer);
    }
+
+  /**
+   * TODO: aesDecrypt(fs, pass)
+   * Decrypts a stream using AES passphrase
+   *
+   * @param {Object} fs - filestream - file to decrypt
+   * @param {string} pass - AES passphrase
+   * @returns {Object} decrypted filestream
+  */
+
+  // Helpful link for decrypting file streams:
+  // http://lollyrock.com/articles/nodejs-encryption/
 
 }
 
