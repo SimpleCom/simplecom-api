@@ -16,7 +16,8 @@ class S3 {
    * @returns {Object} User details.
    */
   static async hit(ctx) {
-
+    console.log(`bucket: ${ctx.params.bucket}`);
+    console.log(`key: ${ctx.params.key}`);
   }
 
 }
