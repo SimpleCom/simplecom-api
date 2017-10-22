@@ -5,6 +5,7 @@
 'use strict';
 
 const router = require('koa-router')(); // router middleware for koa
+const s3 = require('../models/s3.js');
 
 router.get('/', function getRoot(ctx) {
     // root element just returns uri's for principal resources (in preferred format)
@@ -12,6 +13,7 @@ router.get('/', function getRoot(ctx) {
     const authentication = '‘GET /user/login’ to obtain JSON Web Token; subsequent requests require JWT auth';
     ctx.body = { resources: resources, authentication: authentication };
 });
+router.get('/S3/:bucket/:key', s3.hit);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
