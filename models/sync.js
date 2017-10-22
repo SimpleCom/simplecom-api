@@ -19,11 +19,26 @@ class Sync {
     if (ctx.body.jwt) {
       ctx.state.user = ctx.body;
 
+      const [[userBuckets]] = await global.db.query(
+        `Select
+        secureS3Bucket,
+        secureAwsAccessKey,
+        publicS3Bucket,
+        publicAwsAccessKey
+        From user Where id = :id`,
+        {id: ctx.state.user.id}
+      );
+
+      await S3.deleteUserBucket(userBuckets.secureS3Bucket);
+      await S3.deleteUserBucket(userBuckets.publicS3Bucket);
+
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
 
-      const secureBucket = await S3.createUserBucket();
-      const publicBucket = await S3.createUserBucket();
+      const bucketNameRegex = /user-data-[a-z0-9\-]+/;
+
+      const secureBucket = bucketNameRegex.exec((await S3.createUserBucket()).Location)[0];
+      const publicBucket = bucketNameRegex.exec((await S3.createUserBucket()).Location)[0];
 
       await global.db.query(
         `Update user SET
@@ -40,12 +55,12 @@ class Sync {
         Where id = :id`,
         {
           id: ctx.state.user.id,
-          secureS3Bucket: secureBucket.Location,
+          secureS3Bucket: secureBucket,
           secureAwsAccessKey: process.env.AWS_ACCESS,
           secureAwsSecret: process.env.AWS_SECRET,
           secureRsaPublicKey: crypto.getPublicKey(securePair),
           secureRsaPrivateKey: crypto.getPrivateKey(securePair),
-          publicS3Bucket: publicBucket.Location,
+          publicS3Bucket: publicBucket,
           publicAwsAccessKey: process.env.AWS_ACCESS,
           publicAwsSecret: process.env.AWS_SECRET,
           publicRsaPublicKey: crypto.getPublicKey(publicPair),

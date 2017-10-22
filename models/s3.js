@@ -72,6 +72,22 @@ class S3 {
     });
   }
 
+  static async deleteUserBucket(bucketName) {
+
+    const s3 = new aws.S3();
+
+    const params = {
+      Bucket: bucketName
+    };
+
+    return await new Promise((resolve, reject) => {
+      s3.deleteBucket(params, function (err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
