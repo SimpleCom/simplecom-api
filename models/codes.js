@@ -10,7 +10,7 @@ class Codes {
 
   static async getCodes(ctx) {
     const [[codes]] = await global.db.query(
-      'Select privatePasscode, publicPasscode from user where id = :userID',
+      'Select securePasscode, publicPasscode from user where id = :userID',
       { userID: ctx.state.user.id }
     );
     ctx.body = codes;
@@ -18,11 +18,11 @@ class Codes {
 
   static async updateCodes(ctx) {
     await global.db.query(
-      'Update user SET privatePasscode = :privatePasscode, publicPasscode = :publicPasscode where id = :userID',
-      { privatePasscode: ctx.request.body.privatePasscode, publicPasscode: ctx.request.body.publicPasscode, userID: ctx.state.user.id }
+      'Update user SET securePasscode = :securePasscode, publicPasscode = :publicPasscode where id = :userID',
+      { securePasscode: ctx.request.body.securePasscode, publicPasscode: ctx.request.body.publicPasscode, userID: ctx.state.user.id }
     );
     ctx.body = {
-      privatePasscode: ctx.request.body.privatePasscode,
+      securePasscode: ctx.request.body.securePasscode,
       publicPasscode: ctx.request.body.publicPasscode
     };
   }
