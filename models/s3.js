@@ -5,7 +5,8 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 'use strict';
-
+const fs = require('fs');
+const aws = require('aws-sdk');
 
 class S3 {
 
@@ -16,8 +17,27 @@ class S3 {
    * @returns {Object} User details.
    */
   static async hit(ctx) {
-    console.log(`bucket: ${ctx.params.bucket}`);
-    console.log(`key: ${ctx.params.key}`);
+
+    aws.config.update({
+      accessKeyId: process.env.AWS_ACCESS,
+      secretAccessKey: process.env.AWS_SECRET,
+      region: process.env.AWS_REGION
+    });
+    const s3 = new AWS.S3();
+    const params = {
+      Bucket: `/${ctx.params.bucket}`,
+      Key: ctx.params.key,
+    };
+
+    var file = fs.createWriteStream('test.mp4');
+    file.on('close', function(){
+      console.log('done');  //prints, file created
+    });
+    s3.getObject(params).createReadStream().on('error', function(err){
+      console.log(err);
+    }).pipe(file);
+
+    ctx.body = 'Success';
   }
 
 }
