@@ -141,10 +141,15 @@ class User {
 
   static async addLogo(ctx) {
     let imageFile = ctx.request.body.files.uploadFile;
+    let destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
 
-    await fs.copy(imageFile.path, `uploads/logos/${ctx.params.userID}/${imageFile.name}`)
+    await fs.copy(imageFile.path, destination)
       .then(() => {
-        ctx.body = 'Success';
+        const response = {
+          'url': destination
+        }
+
+        ctx.body = response;
       })
       .catch(err => console.log(err))
   }
