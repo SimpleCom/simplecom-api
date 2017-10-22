@@ -5,19 +5,37 @@
 
 'use strict';
 
-const sodium = require('libsodium-wrappers');
+const rsa = require('node-rsa');
 
 class Crypto {
 
   /**
    * Generates a keypair
    *
-   * @returns {Object} Sodium keypair.
+   * @returns {Object} NodeRSA keypair.
    */
-  static async genKeyPair() {
-  await sodium.ready;
+  static genKeyPair() {
+    const key = new rsa();
 
-  return sodium.crypto_box_keypair();
+    return key.generateKeyPair();
+  }
+
+  /**
+   * Exports public key
+   *
+   * @returns {Object} NodeRSA public key.
+   */
+  static getPublicKey(key) {
+    return key.exportKey('public');
+  }
+
+  /**
+   * Exports private key
+   *
+   * @returns {Object} NodeRSA private key.
+   */
+  static getPrivateKey(key) {
+    return key.exportKey('private');
   }
 
 }
