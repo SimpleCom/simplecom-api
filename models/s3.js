@@ -7,6 +7,7 @@
 'use strict';
 const fs = require('fs');
 const aws = require('aws-sdk');
+const mkdirp = require('mkdirp-promise')
 
 class S3 {
 
@@ -23,16 +24,23 @@ class S3 {
       secretAccessKey: process.env.AWS_SECRET,
       region: process.env.AWS_REGION
     });
-    const s3 = new AWS.S3();
+    const bucket = ctx.params.bucket;
+    const fileKey = ctx.params.key;
+    const s3 = new aws.S3();
     const params = {
-      Bucket: `/${ctx.params.bucket}`,
-      Key: ctx.params.key,
+      Bucket: `/${bucket}`,
+      Key: fileKey,
     };
 
-    var file = fs.createWriteStream('test.mp4');
-    file.on('close', function(){
-      console.log('done');  //prints, file created
-    });
+    //Find bucket in the user table
+    const [[user]] = await global.db.query(
+        'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
+        { sBucket: bucket, pBucket: bucket }
+    );
+
+    await mkdirp(`/decrypt/${user.id}/`);
+    const file = fs.createWriteStream(`/decrypt/${user.id}/${fileKey}`);
+
     s3.getObject(params).createReadStream().on('error', function(err){
       console.log(err);
     }).pipe(file);
