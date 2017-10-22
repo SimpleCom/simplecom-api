@@ -22,7 +22,7 @@ class List {
   static async getListsWithContacts(ctx) {
     const [list] = await global.db.query(
       `SELECT l.id as listID, l.name as listName, c.id, c.name, c.email
-      FROM contactList as l INNER JOIN contact as c
+      FROM contactList as l LEFT JOIN contact as c
       ON l.id = c.listID
       WHERE l.userID = :userID`,
       { userID: ctx.state.user.id }
@@ -39,7 +39,7 @@ class List {
         nestedList[value.listID] = {
           id: value.listID,
           name: value.listName,
-          contacts: [contact]
+          contacts: contact.id ? [contact] : []
         };
       return nestedList;
     }, {}));
