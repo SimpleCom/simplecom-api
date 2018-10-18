@@ -7,7 +7,7 @@
 'use strict';
 const fs = require('fs');
 const aws = require('aws-sdk');
-const mkdirp = require('mkdirp-promise');
+const mkdirp = require('mkdirp');
 const uuidv4 = require('uuid/v4');
 
 aws.config.update({
@@ -41,7 +41,7 @@ class S3 {
     );
 
     const dir = __dirname + `/../decrypt/${user.id}/`;
-    const res = await mkdirp(dir);
+    mkdirp.sync(dir);
     console.log(res, dir);
     const file = fs.createWriteStream(`${dir}${fileKey}`);
 

@@ -23,6 +23,8 @@ const cors = require('koa2-cors');   // CORS for Koa 2
 const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
+const serve = require('koa-static');
+const mkdirp = require('mkdirp');
 
 const app = new Koa();
 
@@ -139,38 +141,48 @@ app.use(async function mysqlConnection(ctx, next) {
   }
 });
 
+const dir = __dirname + '/logs';
+mkdirp.sync(dir);
 
 // logging
-// const access = {type: 'rotating-file', path: './logs/api-access.log', level: 'trace', period: '1d', count: 4};
-// const error = {type: 'rotating-file', path: './logs/api-error.log', level: 'error', period: '1d', count: 4};
-// const logger = bunyan.createLogger({name: 'api', streams: [access, error]});
-// app.use(koaLogger(logger, {}));
+const access = {type: 'rotating-file', path: './logs/api-access.log', level: 'trace', period: '1d', count: 4};
+const error = {type: 'rotating-file', path: './logs/api-error.log', level: 'error', period: '1d', count: 4};
+const logger = bunyan.createLogger({name: 'api', streams: [access, error]});
+app.use(koaLogger(logger, {}));
 
 // ------------ routing
 
 // public (unsecured) modules first
+let dirs = __dirname + '/logos';
+console.log(dirs);
+mkdirp.sync(dirs);
+dirs = 'logos';
+app.use(serve(dirs));
 
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
 app.use(require('./routes/routes-sync.js'));
+app.use(require('./routes/routes-pdf.js'));
 
 // remaining routes require JWT auth (obtained from /auth and supplied in bearer authorization header)
 
 app.use(async function verifyJwt(ctx, next) {
-  if (!ctx.header.authorization) ctx.throw(401, 'Authorisation required');
-  const [scheme, token] = ctx.header.authorization.split(' ');
-  if (scheme != 'Bearer') ctx.throw(401, 'Invalid authorisation');
+  const rx = ctx.request.url.split('/');
+  if (rx[1] !== 'logos') {
+    if (!ctx.header.authorization) ctx.throw(401, 'Authorisation required');
+    const [scheme, token] = ctx.header.authorization.split(' ');
+    if (scheme != 'Bearer') ctx.throw(401, 'Invalid authorisation');
 
-  try {
-    const payload = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
-    // valid token: accept it...
-    ctx.state.user = payload;                  // for user id  to look up user details
-    //console.log('user', ctx.state.user);
-  } catch (e) {
-    if (e.message == 'invalid token') ctx.throw(401, 'Invalid JWT'); // Unauthorized
-    ctx.throw(e.status || 500, e.message); // Internal Server Error
+    try {
+      const payload = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
+      // valid token: accept it...
+      ctx.state.user = payload;                  // for user id  to look up user details
+      //console.log('user', ctx.state.user);
+    } catch (e) {
+      if (e.message == 'invalid token') ctx.throw(401, 'Invalid JWT'); // Unauthorized
+      ctx.throw(e.status || 500, e.message); // Internal Server Error
+    }
   }
-
   await next();
 });
 

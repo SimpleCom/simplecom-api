@@ -8,534 +8,71 @@
 
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
-const dateFormat = require('dateformat');
-let doc;
-const stateList = [{name: 'Missouri', abbr: 'MO'},{name: 'Minnesota', abbr: 'MN'},{name: 'Nevada', abbr: 'NV'},{name: 'Kentucky', abbr: 'KY'},{name: 'Indiana', abbr: 'IN'}, {name: 'Colorado', abbr: 'CO'}, {name: 'Alabama', abbr: 'AL'}, {name: 'North Carolina', abbr: 'NC'}, {name: 'Georgia', abbr: 'GA'}, {name: 'Illinois', abbr: 'IL'}];
-//,{name: 'Louisiana', abbr: 'LA'}
-let footerCounter = 1;
-
-async function states(state, id, connection) {
-  const columnWidth = 175;
-  const columnHeight = 50;
-  const columnStart = 75;
-  const perPage = 12;
-
-  doc.addPage({margins: {top: 50, bottom: 50, left: 50, right: 50}});
-  header();
-
-  doc.fontSize(16);
-  doc.text(state.name, 50, columnStart - 20, {
-    align: 'left',
-    fill: true,
-    stroke: true
-  });
-
-  const [marks] = await connection.execute('select * from stateResult where scrapeID = ? and state = "' + state.abbr + '"', [id]);
-
-  doc.fontSize(9);
-  let counter = 0;
-  footerCounter++;
-  footer(footerCounter);
-  for (const key in marks) {
-    doc.fontSize(9);
-    if (marks[key].hasOwnProperty('markName')) {
-      doc.text(marks[key].markName, 50, columnStart + (columnHeight * counter), {
-        align: 'left',
-        width: 150,
-        height: columnHeight - 5,
-        ellipsis: true
-      });
-    }
-
-    if (marks[key].hasOwnProperty('event')) {
-      doc.text(marks[key].event, 205, columnStart + (columnHeight * counter), {
-        align: 'left',
-        width: 100,
-
-      });
-    }
-
-    if (marks[key].hasOwnProperty('ownerName')) {
-      doc.text(marks[key].ownerName, 335, columnStart + (columnHeight * counter), {
-        align: 'left',
-        width: 70,
-        height: columnHeight - 5,
-        ellipsis: true
-      });
-    }
-
-    if (marks[key].hasOwnProperty('registrationDate')) {
-      doc.text(dateFormat(marks[key].registrationDate, 'mm-dd-yy'), 410, columnStart + (columnHeight * counter), {
-        align: 'left',
-        width: 80
-      });
-    }
-
-    if (marks[key].hasOwnProperty('status')) {
-      doc.text(marks[key].status, 410, columnStart + (columnHeight * counter) + 15, {
-        align: 'left',
-        width: 80
-      });
-    }
-
-    if (counter % perPage === 0 && counter !== 0) {
-      doc.addPage({margins: {top: 50, bottom: 50, left: 50, right: 50}});
-      header();
-      doc.fontSize(16);
-      doc.text(state.name, 50, columnStart - 20, {
-        align: 'left',
-        fill: true,
-        stroke: true
-      });
-
-      footerCounter++;
-      footer(footerCounter);
-      counter = 0;
-    } else {
-      counter += 1;
-    }
-  }
-}
-
-function uspto(marks) {
-  const leftColumnPosition = 50;
-  const rightColumnPosition = 150;
-  const columnHeight = 100;
-  const columnSpacing = 25;
-  const leftColumnWidth = 100;
-  const rightColumnWidth = 425;
-  const rowCounterMultiplier = 0.8;
-  const imageSpacing = 175;
-
-  doc.addPage({margins: {top: 50, bottom: 50, left: 50, right: 50}});
-  header();
-
-  doc.fontSize(16);
-
-  doc.fontSize(10.5);
-  footerCounter++;
-  footer(footerCounter);
-
-  let rowCounter = 1;
-
-  for (const key in marks) {
-    // if (marks[key].hasOwnProperty('image')) {
-    //   doc.image('/home/brock/Downloads/logo.jpg', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-    //     align: 'center',
-    //     height: 100,
-    //     width: 100
-    //   });
-    // }
-
-    if (marks[key].hasOwnProperty('name')) {
-      doc.text('Word Mark', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].name, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('type')) {
-      doc.text('Type', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].type, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('serialNumber')) {
-      doc.text('Serial Number', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].serialNumber, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('registrationNumber')) {
-      doc.text('Reg. Number', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].registrationNumber, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('registrationDate')) {
-      doc.text('Reg. Date', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].registrationDate, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('filingDate')) {
-      doc.text('Filing Date', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].filingDate, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('status')) {
-      doc.text('Status', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].status, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('published')) {
-      doc.text('Published', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].published, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('services')) {
-      doc.text('Goods and Services', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].services, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth,
-        height: 170,
-        ellipsis: true
-      });
-
-      rowCounter += 9 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('drawingCode')) {
-      doc.text('Drawing Code', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].drawingCode, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('currentBasis')) {
-      doc.text('Current Basis', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].currentBasis, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-    }
-
-    if (marks[key].hasOwnProperty('originalFilingBasis')) {
-      doc.text('Original Basis', leftColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].originalFilingBasis, rightColumnPosition + imageSpacing, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 1 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('owner')) {
-      doc.text('Owner', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].owner, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 2 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('characters')) {
-      doc.text('Characters Claimed', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].characters, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 2 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('assignmentRecorded')) {
-      doc.text('Assignment Recorded', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].assignmentRecorded, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 2 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('disclaimer')) {
-      doc.text('Disclaimer', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].disclaimer, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-
-      rowCounter += 2 * rowCounterMultiplier;
-    }
-
-    if (marks[key].hasOwnProperty('register')) {
-      doc.text('Register', leftColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: leftColumnWidth,
-        fill: true,
-        stroke: true
-      });
-
-      doc.text(marks[key].register, rightColumnPosition, columnHeight + columnSpacing * rowCounter, {
-        align: 'left',
-        width: rightColumnWidth
-      });
-    }
-
-    rowCounter = 1;
-
-    if (footerCounter !== marks.length + 1) {
-      doc.addPage({margins: {top: 50, bottom: 30, left: 50, right: 50}});
-      header();
-      footerCounter++;
-      footer(footerCounter);
-    }
-  }
-}
-
-// Adds a header to the top of the current page
-function header() {
-  doc.fontSize(20);
-  doc.text('Registered Artists', 0, 40, {
-    align: 'center',
-    width: 620
-  });
-  doc.moveDown(2);
-  doc.fontSize(12);
-}
-
-// Adds a fixed footer to the bottom of the current page
-function footer(counter) {
-  doc.fontSize(10.5);
-  doc.text(counter.toString(), 75, 720, {
-    align: 'center',
-  });
-  doc.fontSize(12);
-}
+const doc = new PDFDocument;
+const randomstring = require('randomstring');
+const mkdirp = require('mkdirp');
+const mail = require('./mail.js');
+
+const testData = {
+  userID: 1,
+  lists: [ 29, 30 ],
+  text: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam sit amet leo arcu. Nulla consequat rutrum ornare. Curabitur in erat condimentum, feugiat eros id, auctor magna. Praesent vehicula magna diam. Maecenas id fermentum velit. Nulla non dui urna. Aenean quis consequat est. Vivamus lorem felis, sodales in lectus eu, efficitur vestibulum magna. Praesent laoreet diam dui, quis luctus nisi placerat ut. Pellentesque pharetra tincidunt dui ut eleifend.\n' +
+        '\n' +
+        'Morbi tortor risus, egestas at felis et, accumsan convallis ex. Maecenas lacus magna, consectetur eu scelerisque sit amet, elementum id sapien. Aenean suscipit ex consectetur ligula eleifend, et condimentum tellus cursus. Morbi sollicitudin non eros quis porttitor. Duis mi nisi, sagittis fermentum ipsum quis, pellentesque viverra nisl. Nulla eget turpis eu neque iaculis egestas. Donec maximus ornare diam, ut lacinia diam pulvinar ac. Sed felis velit, dapibus eu aliquet nec, tempor quis tortor.\n' +
+        '\n' +
+        'Maecenas ac dictum lectus. Cras in odio tortor. Donec non elementum nulla. Mauris at tempor dolor, tempor tempor nisl. Cras eros diam, venenatis ut felis vel, malesuada dictum sem. Vivamus magna erat, condimentum in neque non, scelerisque fermentum sem. Phasellus tellus urna, tristique non massa ac, dignissim imperdiet ex. Integer ultricies lacus nunc, ornare pellentesque purus posuere scelerisque. Donec blandit fringilla urna, nec convallis quam venenatis eget. Mauris dapibus commodo maximus. Cras blandit porttitor odio ultricies luctus. Donec at neque a nisi porttitor sollicitudin id sed est. Etiam vel cursus metus. In mi velit, finibus ut diam a, sagittis aliquam felis. Maecenas vel nulla pharetra est vehicula interdum.\n' +
+        '\n' +
+        'Quisque semper, mi vel venenatis efficitur, erat ex vehicula urna, a suscipit massa est ut nibh. Vestibulum justo quam, consequat vel vehicula et, consequat in ligula. Nam vestibulum neque interdum scelerisque euismod. Suspendisse vel sapien at nibh auctor ultrices vitae a magna. Pellentesque interdum risus nunc, in elementum neque ultrices eget. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec tellus erat, placerat et imperdiet quis, convallis sed nulla. Ut egestas rhoncus placerat. Aenean blandit velit porta turpis malesuada facilisis.\n' +
+        '\n' +
+        'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nibh libero, auctor vel lacus sed, dictum consectetur leo. Mauris tristique, dolor ac finibus hendrerit, ligula massa semper sapien, a eleifend quam dui sit amet enim. Aliquam a fringilla ligula. Curabitur facilisis tristique nibh, vitae convallis elit blandit id. Quisque accumsan ligula massa, quis dignissim felis egestas vitae. Quisque egestas enim et aliquet vehicula. Aenean in ex neque. Pellentesque nisl est, aliquet pulvinar ornare nec, dapibus a risus.',
+  images: [ { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 2 is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 3 is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 2 is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 3 is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption is here 7' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 2 is here' }, { img: 'decrypt/1/IMG_0157.JPG', caption: 'caption 3 is here' } ],
+};
 
 // The first page of the document, includes search and client info
-function splash(term) {
-  const clientName = 'Test Professionals, Inc';
-  const accountNo = 289347589237;
-  const searchTerm = term;
-  const searchOptions = 'Active, Abandoned, Cancelled Status';
-
-  doc.image('logo.png', {
-    align: 'center',
-    height: 100,
-    width: 100
-  });
-
-  doc.moveUp(6);
-
-  doc.fontSize(20);
-  doc.text('Comprehensive Search Report', {
-    align: 'right'
-  });
-
-  doc.fontSize(12);
-
-  doc.text('Created on February 10, 2017 at 6:17 PM PST', {
-    align: 'right'
-  });
-
-  doc.moveDown(8);
-
-  doc.fontSize(14);
-
-  doc.text(`Client                               ${clientName}`, {
-    align: 'left',
-    fill: true,
-    stroke: true
-  });
-
-  doc.moveDown(1);
-
-  doc.text(`Account No.                     ${accountNo}`, {
-    align: 'left',
-    fill: true,
-    stroke: true
-  });
-
-  doc.moveDown(1);
-
-  doc.text(`Search Term                    ${searchTerm}`, {
-    align: 'left',
-    fill: true,
-    stroke: true
-  });
-
-  doc.moveDown(1);
-
-  doc.text(`Search Options               ${searchOptions}`, {
-    align: 'left',
-    fill: true,
-    stroke: true
-  });
-
-  doc.moveDown(1);
-}
-
 class Pdf {
 
-  static async doPDF(id, connection) {
-    doc = new PDFDocument;
-
-    const [info] = await connection.execute('select * from scrape where id = ?', [id]);
-    const term = info[0].term;
-
-    const [usptoMarks] = await connection.execute('select * from usptoResult where scrapeID = ?', [id]);
-    console.log(`'${term}' start pdf`);
-    doc.pipe(fs.createWriteStream('search-' + id + '.pdf'));
-
-    // Actually construct the PDF
-    header();
-    splash(term);
-    footer(1);
-    uspto(usptoMarks);
-
-    for (const state of stateList) {
-      await states(state, id, connection);
-    }
-
-    await doc.end();
-
-    console.log(`'${term}' pdf done`);
-
+  static testPDF(ctx) {
+    const filename = Pdf.makePDF(testData);
+    mail.send(filename, testData);
+    ctx.body = 'success';
   }
 
-  static testPDF(id) {
+  static makePDF(data){
+    const dir = __dirname + '/pdf';
+    mkdirp.sync(dir);
 
-    doc.pipe(fs.createWriteStream('output.pdf'));
+    const filename = dir + '/' + randomstring.generate(25);
 
-    // Actually construct the PDF
-    header();
-    splash();
-    footer(1);
-    uspto(usptoMarks);
+    doc.pipe(fs.createWriteStream(filename));
 
-    for (const state of stateList) {
-      states(state);
+    //Text Here
+    doc.text(data.text);
+    doc.addPage();
+    let top = 20;
+    let left = 25;
+    for(const img of data.images){
+      console.log(top, left);
+      doc.image(img.img, left, top, { height: 200, left: 100 } )
+          .text(img.caption + top, left, top + 205);
+      if (left > 25) {
+        left = 25;
+        if (top < 400){
+          top += 230;
+        } else {
+          console.log('new page');
+          doc.addPage();
+          top = 20;
+        }
+
+      } else {
+        left = 315;
+      }
     }
 
     doc.end();
-
+    return filename;
   }
 
 }
+
 module.exports = Pdf;

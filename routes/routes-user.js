@@ -14,6 +14,7 @@ const user  = require('../models/user.js');
 //router.put('/user/save/:userID', user.save);    // update a user
 //router.post('/user/addTeam', user.addTeam);    // update a user
 router.post('/user/:userID/logo', user.addLogo);
+//router.get('/user/:userID/logo', user.getLogo);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = router.middleware();
