@@ -5,6 +5,8 @@ uploads
 ### Node template
 # Logs
 *.log
+*.log.*
+logs/**
 .idea
 *.iml
 npm-debug.log*
@@ -62,3 +64,5 @@ typings/
 
 # dotenv environment variables file
 .env
+
+models/pdf/*
