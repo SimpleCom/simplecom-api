@@ -5,7 +5,7 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 
-const fs = require('fs-extra');
+// const fs = require('fs-extra');
 const s3 = require("./s3");
 
 
@@ -19,7 +19,7 @@ class Organization {
 
     await s3.uploadImage(imageFile.path, destination);
 
-    const fileURL = `https://s3.us-west-1.amazonaws.com/simplecom-logos/${destination}`;
+    const fileURL = `https://s3.${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_BUCKET}/${destination}`;
 
     await global.db.query(`UPDATE organization SET 
         logo = :logo
@@ -32,7 +32,7 @@ class Organization {
   }
 
 }
-
+  
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = Organization;
