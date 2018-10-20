@@ -191,7 +191,7 @@ app.use(async function verifyJwt(ctx, next) {
 
 app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
-app.use(require('./routes/routes-organization.js'));
+
 app.use(require('./routes/routes-codes.js'));
 app.use(require('./routes/routes-utility.js'));
 
@@ -204,6 +204,7 @@ app.use(async function verifyAdmin(ctx, next) {
 });
 
 app.use(require('./routes/routes-admin-user.js'));
+app.use(require('./routes/routes-admin-organization.js'));
 
 
 /* create server - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
