@@ -192,7 +192,7 @@ class User {
 
   static async getList(ctx) {
     try {
-      const [result] = await global.db.query(`select u.id, u.uname, o.name
+      const [result] = await global.db.query(`select u.id, u.uname, o.name, u.status
                                               from user u
                                                      left join organization o on u.organizationID = o.id`);
       ctx.body = Return.setReturn(result);
