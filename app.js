@@ -211,7 +211,7 @@ app.use(async function verifyAdmin(ctx, next) {
   if (ctx.state.user.userTypeID === 2) {
     await next();
   } else {
-    ctx.code = 403;
+    ctx.throw(401, 'Invalid authorization');
   }
 });
 
