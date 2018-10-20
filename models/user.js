@@ -23,7 +23,7 @@ class User {
    * @returns {Object} User details.
    */
   static async get(id) {
-    const [[user]] = await global.db.query('Select id, uname, userTypeID, organizationID, securePasscode, publicPasscode From user Where id = :id', {id});
+    const [[user]] = await global.db.query('Select id, uname, userTypeID, organizationID, securePasscode, publicPasscode, distressPasscode From user Where id = :id', {id});
     return user;
   }
 
@@ -41,8 +41,11 @@ class User {
 
 
   static async setStatus(ctx) {
-    try{
-      const result = await global.db.query('update user set status = :status where id = :id', {status: ctx.request.body.status, id: ctx.request.body.userID});
+    try {
+      const result = await global.db.query('update user set status = :status where id = :id', {
+        status: ctx.request.body.status,
+        id: ctx.request.body.userID
+      });
       ctx.body = Return.setReturn(result);
     } catch (e) {
       console.log('error in getUser', e);
@@ -53,7 +56,24 @@ class User {
 
   static async update(ctx) {
     console.log(ctx.request.body);
-    const result = await global.db.query('update user set uname = :uname, userTypeID = :userTypeID, organizationID = :organizationID where id = :id', {uname: ctx.request.body.uname, userTypeID: ctx.request.body.userTypeID, organizationID: ctx.request.body.organizationID, id: ctx.request.body.id});
+    const result = await global.db.query(`update user
+                                          set uname            = :uname,
+                                              userTypeID       = :userTypeID,
+                                              organizationID   = :organizationID,
+                                              securePasscode   = :securePasscode,
+                                              publicPasscode   = :publicPasscode,
+                                              distressPasscode = :distressPasscode
+                                          where id = :id`,
+    {
+      uname: ctx.request.body.uname,
+      userTypeID: ctx.request.body.userTypeID,
+      organizationID: ctx.request.body.organizationID,
+      securePasscode: ctx.request.body.securePasscode,
+      publicPasscode: ctx.request.body.publicPasscode,
+      distressPasscode: ctx.request.body.distressPasscode,
+      id: ctx.request.body.id
+    });
+
     ctx.body = Return.setReturn(result);
   }
 
@@ -115,7 +135,9 @@ class User {
   static async getByUname(value) {
     try {
 
-      const sql = `Select * From user where uname = :uname`;
+      const sql = `Select *
+                   From user
+                   where uname = :uname`;
       const [users] = await global.db.query(sql, {uname: value});
       return users;
 
@@ -131,16 +153,21 @@ class User {
   }
 
   static async addToken(userID, refreshToken) {
-    const sql = `insert into userToken (userID, refreshToken) values (:userID, :refreshToken)`;
+    const sql = `insert into userToken (userID, refreshToken)
+                 values (:userID, :refreshToken)`;
     const ret = await global.db.query(sql, {userID: userID, refreshToken: refreshToken});
     return ret;
   }
 
   static async getByToken(token) {
-    const sql = `Select * From user where id in (select userID from userToken where refreshToken = :token)`;
+    const sql = `Select *
+                 From user
+                 where id in (select userID from userToken where refreshToken = :token)`;
     const [users] = await global.db.query(sql, {token: token});
 
-    const sql2 = `delete from userToken where refreshToken = :token`; //This token has been used, remove it.
+    const sql2 = `delete
+                  from userToken
+                  where refreshToken = :token`; //This token has been used, remove it.
     const res = await global.db.query(sql2, {token: token});
 
     return users;
@@ -151,7 +178,8 @@ class User {
     try {
       var newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
-      [result] = await global.db.query(`insert into user (uname, password, userTypeID) values (:uname, :pass, :userTypeID)`, {
+      [result] = await global.db.query(`insert into user (uname, password, userTypeID)
+                                        values (:uname, :pass, :userTypeID)`, {
         uname: ctx.request.body.uname,
         pass: newPassword.toString("base64"),
         userTypeID: ctx.request.body.userTypeID
@@ -166,8 +194,9 @@ class User {
 
   static async getList(ctx) {
     try {
-      const [result] = await global.db.query(`select u.id, u.uname, o.name 
-                                              from user u left join organization o on u.organizationID = o.id`);
+      const [result] = await global.db.query(`select u.id, u.uname, o.name
+                                              from user u
+                                                     left join organization o on u.organizationID = o.id`);
       ctx.body = Return.setReturn(result);
     } catch (e) {
       console.log('error in getUserTypes', e);
@@ -179,7 +208,7 @@ class User {
 
 }
 
-const makeCode = function(len = 6) {
+const makeCode = function (len = 6) {
   var text = "";
   var possible = "BCDFGHJKLMNPQRSTVWXYZ0123456789";
   for (var i = 0; i < len; i++)

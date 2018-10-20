@@ -52,8 +52,8 @@ class S3 {
       const dirAdd = fileSplit.join('/');
       const dir = path.join(__dirname, `/../decrypt/${user.id}/${dirAdd}/`);
       console.log('mkdirp', dir);
-      const mkres = mkdirp.sync(dir);
-      console.log('made dir', dir, mkres);
+      mkdirp.sync(dir);
+      console.log('made dir', dir);
       console.log('fileName', fileName);
       const file = fs.createWriteStream(`${dir}${fileName}`);
 
