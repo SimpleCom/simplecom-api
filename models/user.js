@@ -94,6 +94,10 @@ class User {
     } else {
       [user] = await User.getByUname(ctx.request.body.uname);
       if (!user) ctx.throw(401, 'Username/password not found');
+      if (user.status !== 1) {
+        ctx.throw(401, 'Invalid authorization');
+        return 0;
+      }
       // check password
       try {
         const match = await scrypt.verifyKdf(Buffer.from(user.password, 'base64'), ctx.request.body.pass);
