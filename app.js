@@ -198,7 +198,6 @@ app.use(require('./routes/routes-utility.js'));
 app.use(async function verifyAdmin(ctx, next) {
   console.log(ctx.state.user);
   if (ctx.state.user.userTypeID === 2) {
-    console.log('in');
     await next();
   }
 });

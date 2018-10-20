@@ -1,12 +1,12 @@
 {
-  "name": "koa-sample-web-app-api-mysql",
-  "description": "Koa Sample App (handlebars templating + RESTful API using MySQL, on Node.js)",
-  "author": "Chris Veness",
+  "name": "simplecom-api",
+  "description": "Simplecom API",
+  "author": "",
   "license": "MIT",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "http://github.com/chrisveness/koa-sample-web-app-api-mysql.git"
+    "url": "https://github.com/SimpleCom/simplecom-api"
   },
   "main": "app.js",
   "scripts": {

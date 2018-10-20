@@ -8,7 +8,6 @@ const router = require('koa-router')(); // router middleware for koa
 
 router.get('/testmail', function getRoot(ctx) {
   const sgMail = require('@sendgrid/mail');
-  console.log(process.env.SENDGRIDKEY);
   sgMail.setApiKey(process.env.SENDGRIDKEY);
   const msg = {
     to: 'geektech2000@gmail.com',
@@ -18,7 +17,6 @@ router.get('/testmail', function getRoot(ctx) {
     html: '<strong>and easy to do anywhere, even with Node.js</strong>',
   };
   const ret = sgMail.send(msg);
-  console.log('return', ret);
   ctx.body = 'mail sent';
 });
 

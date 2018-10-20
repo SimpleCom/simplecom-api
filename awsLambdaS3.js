@@ -10,7 +10,6 @@ exports.handler = function (event, context) {
     path: `/hit/${srcBucket}/${srcKey}`,
     method: 'GET'
   };
-  console.log(options);
   const req = https.request(options, (res) => {
     res.on('data', (d) => {
       return true;

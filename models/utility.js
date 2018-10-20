@@ -8,7 +8,6 @@ class Utility {
                                               from userType`);
       ctx.body = Return.setReturn(result);
     } catch (e) {
-      console.log('error in getUserTypes', e);
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }

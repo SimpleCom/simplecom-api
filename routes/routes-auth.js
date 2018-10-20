@@ -27,36 +27,6 @@ const User = require('../models/user.js');
 
 router.post('/user/login', User.getAuth);
 
-// router.get('/jwt', async function getJWT(ctx) {
-//   if (!ctx.header.authorization) ctx.throw(401, 'Authorisation required');
-//   const [scheme, token] = ctx.header.authorization.split(' ');
-//   if (scheme != 'Bearer') ctx.throw(401, 'Invalid authorisation');
-//
-//   const roles = {1: 'user', 2: 'admin', 3: 'su'};
-//
-//   try {
-//     const payload = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
-//     // valid token: accept it...
-//     ctx.state.user = payload;                  // for user id  to look up user details
-//     ctx.state.user.Role = roles[payload.role]; // for authorisation checks
-//
-//     const curDate = new Date() / 1000;
-//     ctx.state.user.curDate = curDate;
-//     const seconds = Math.round(ctx.state.user.exp - curDate);
-//     ctx.state.user.remainingSeconds = Math.round(seconds);
-//     ctx.state.user.remainingMinutes = Math.round(seconds / 60);
-//     ctx.state.user.remainingHours = Math.round(seconds / 60 / 60);
-//
-//     ctx.body = ctx.state.user;
-//     ctx.root = 'TOKEN';
-//   } catch (e) {
-//     if (e.message == 'invalid token') ctx.throw(401, 'Invalid JWT'); // Unauthorized
-//     ctx.throw(e.status || 500, e.message); // Internal Server Error
-//   }
-// });
-
-
-
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = router.middleware();

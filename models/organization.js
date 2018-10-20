@@ -4,8 +4,6 @@
 /* All database modifications go through the model; most querying is in the handlers.             */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-
-// const fs = require('fs-extra');
 const s3 = require("./s3");
 const Return = require('./return');
 
