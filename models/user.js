@@ -52,8 +52,9 @@ class User {
   }
 
   static async update(ctx) {
+    const orgID = ctx.params.organizationID;
 
-  const result = await global.db.query(`update user
+    const result = await global.db.query(`update user
                                           set uname            = :uname,
                                               userTypeID       = :userTypeID,
                                               organizationID   = :organizationID,
@@ -61,15 +62,15 @@ class User {
                                               publicPasscode   = :publicPasscode,
                                               distressPasscode = :distressPasscode
                                           where id = :id`,
-    {
-      uname: ctx.request.body.uname,
-      userTypeID: ctx.request.body.userTypeID,
-      organizationID: ctx.request.body.organizationID,
-      securePasscode: ctx.request.body.securePasscode,
-      publicPasscode: ctx.request.body.publicPasscode,
-      distressPasscode: ctx.request.body.distressPasscode,
-      id: ctx.request.body.id
-    });
+      {
+        uname: ctx.request.body.uname,
+        userTypeID: ctx.request.body.userTypeID,
+        organizationID: ctx.request.body.organizationID,
+        securePasscode: ctx.request.body.securePasscode,
+        publicPasscode: ctx.request.body.publicPasscode,
+        distressPasscode: ctx.request.body.distressPasscode,
+        id: orgID
+      });
 
     ctx.body = Return.setReturn(result);
   }

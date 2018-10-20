@@ -82,7 +82,8 @@ class Sync {
         publicAwsAccessKey,
         publicAwsSecret,
         publicPasscode,
-        publicRsaPublicKey
+        publicRsaPublicKey,
+        distressPasscode
         From user Where id = :id`,
         {id: ctx.state.user.id}
       );
@@ -94,14 +95,15 @@ class Sync {
           awsAccessKey: user.secureAwsAccessKey,
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
-          rsaPublicKey: user.secureRsaPublicKey,
+          rsaPublicKey: user.secureRsaPublicKey
         },
         p: {
           s3Bucket: publicBucket, //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.publicAwsAccessKey,
           awsSecret: user.publicAwsSecret,
           passcode: user.publicPasscode,
-          rsaPublicKey: user.publicRsaPublicKey,
+          dpasscode: user.distressPasscode,
+          rsaPublicKey: user.publicRsaPublicKey
         }
       };
     }else{

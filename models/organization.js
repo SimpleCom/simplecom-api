@@ -46,7 +46,7 @@ class Organization {
 
   static async get(ctx) {
     try {
-      const orgID = ctx.request.params.orgID;
+      const orgID = ctx.params.organizationID;
       const [[response]] = await global.db.query(`select id, name
                                                 from organization
                                                where id = :orgID`, {orgID: orgID});
@@ -68,7 +68,8 @@ class Organization {
 
   static async update(ctx) {
     try {
-      const response = await global.db.query(`update organization set name = :name where id = :id`, {name: ctx.request.body.name, id: ctx.request.body.id});
+      const orgID = ctx.params.organizationID;
+      const response = await global.db.query(`update organization set name = :name where id = :id`, {name: ctx.request.body.name, id: orgID});
       ctx.body = Return.setReturn(response);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
