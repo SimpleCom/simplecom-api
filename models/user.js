@@ -40,9 +40,10 @@ class User {
 
   static async setStatus(ctx) {
     try {
+      const userID = ctx.params.userID;
       const result = await global.db.query('update user set status = :status where id = :id', {
         status: ctx.request.body.status,
-        id: ctx.request.body.userID
+        id: userID
       });
       ctx.body = Return.setReturn(result);
     } catch (e) {
