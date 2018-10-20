@@ -44,11 +44,14 @@ class S3 {
         {sBucket: bucket, pBucket: bucket}
       );
 
+      console.log('user', user);
+
       const fileSplit = fileKey.split('/');
       fileSplit.shift();
       const fileName = fileSplit.pop();
       const dirAdd = fileSplit.join('/');
       const dir = path.join(__dirname, `/../decrypt/${user.id}/${dirAdd}/`);
+      console.log('mkdirp', dir);
       const mkres = mkdirp.sync(dir);
       console.log('made dir', dir, mkres);
       console.log('fileName', fileName);
