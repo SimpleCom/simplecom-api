@@ -19,28 +19,35 @@ class Sync {
     if (ctx.body.jwt) {
       ctx.state.user = ctx.body;
 
-      // TODO: change back when s3 lambda events are working
-      // const [[userBuckets]] = await global.db.query(
-      //   `Select
-      //   secureS3Bucket,
-      //   secureAwsAccessKey,
-      //   publicS3Bucket,
-      //   publicAwsAccessKey
-      //   From user Where id = :id`,
-      //   {id: ctx.state.user.id}
-      // );
+      const [ [ userBuckets ] ] = await global.db.query(
+          `Select
+        secureS3Bucket,
+        secureAwsAccessKey,
+        publicS3Bucket,
+        publicAwsAccessKey
+        From user Where id = :id`,
+        { id: ctx.state.user.id },
+      );
 
-      // await S3.deleteUserBucket(userBuckets.secureS3Bucket); // TODO: change back when s3 lambda events are working
-      // await S3.deleteUserBucket(userBuckets.publicS3Bucket); // TODO: change back when s3 lambda events are working
+      try {
+        await S3.deleteUserBucket(userBuckets.secureS3Bucket);
+      } catch (e) {
+        console.log('Failed to delete S3 bucket', userBuckets.secureS3Bucket, e);
+      }
+      try {
+        await S3.deleteUserBucket(userBuckets.publicS3Bucket);
+      } catch (e) {
+        console.log('Failed to delete S3 bucket', userBuckets.publicS3Bucket, e);
+      }
 
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
 
-      const secureBucket = 'simplecom-uploads'; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
-      const publicBucket = 'simplecom-uploads'; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
+      const secureBucket = await S3.createUserBucket();
+      const publicBucket = await S3.createUserBucket();
 
       await global.db.query(
-        `Update user SET
+          `Update user SET
         secureS3Bucket = :secureS3Bucket,
         secureAwsAccessKey = :secureAwsAccessKey,
         secureAwsSecret = :secureAwsSecret,
@@ -53,25 +60,25 @@ class Sync {
         publicRsaPrivateKey = :publicRsaPrivateKey
         Where id = :id`,
         {
-          id: ctx.state.user.id,
-          secureS3Bucket: secureBucket,
-          secureAwsAccessKey: process.env.AWS_ACCESS,
-          secureAwsSecret: process.env.AWS_SECRET,
-          secureRsaPublicKey: crypto.getPublicKey(securePair),
+          id:                  ctx.state.user.id,
+          secureS3Bucket:      secureBucket,
+          secureAwsAccessKey:  process.env.AWS_ACCESS,
+          secureAwsSecret:     process.env.AWS_SECRET,
+          secureRsaPublicKey:  crypto.getPublicKey(securePair),
           secureRsaPrivateKey: crypto.getPrivateKey(securePair),
-          publicS3Bucket: publicBucket,
-          publicAwsAccessKey: process.env.AWS_ACCESS,
-          publicAwsSecret: process.env.AWS_SECRET,
-          publicRsaPublicKey: crypto.getPublicKey(publicPair),
-          publicRsaPrivateKey: crypto.getPrivateKey(publicPair)
-        }
+          publicS3Bucket:      publicBucket,
+          publicAwsAccessKey:  process.env.AWS_ACCESS,
+          publicAwsSecret:     process.env.AWS_SECRET,
+          publicRsaPublicKey:  crypto.getPublicKey(publicPair),
+          publicRsaPrivateKey: crypto.getPrivateKey(publicPair),
+        },
       );
 
       await list.getLists(ctx);
       const lists = ctx.body; //list.get sets the ctx.body to the list of lists
 
-      const [[user]] = await global.db.query(
-        `Select id,
+      const [ [ user ] ] = await global.db.query(
+          `Select id,
         uname,
         secureS3Bucket,
         secureAwsAccessKey,
@@ -85,28 +92,28 @@ class Sync {
         publicRsaPublicKey,
         distressPasscode
         From user Where id = :id`,
-        {id: ctx.state.user.id}
+        { id: ctx.state.user.id },
       );
       ctx.body = {
         userId: ctx.state.user.id, // TODO: remove when s3 lambda events are working
         lists: lists,
-        s: {
-          s3Bucket: secureBucket, //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
+        s:     {
+          s3Bucket:     user.secureS3Bucket,
           awsAccessKey: user.secureAwsAccessKey,
-          awsSecret: user.secureAwsSecret,
-          passcode: user.securePasscode,
+          awsSecret:    user.secureAwsSecret,
+          passcode:     user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey
         },
-        p: {
-          s3Bucket: publicBucket, //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
+        p:     {
+          s3Bucket:     user.publicS3Bucket,
           awsAccessKey: user.publicAwsAccessKey,
-          awsSecret: user.publicAwsSecret,
-          passcode: user.publicPasscode,
+          awsSecret:    user.publicAwsSecret,
+          passcode:     user.publicPasscode,
           dpasscode: user.distressPasscode,
           rsaPublicKey: user.publicRsaPublicKey
-        }
+        },
       };
-    }else{
+    } else {
       ctx.throw(403, 'Not Authorized');
     }
   }
