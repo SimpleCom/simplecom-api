@@ -18,6 +18,8 @@ aws.config.update({
   region: process.env.AWS_REGION
 });
 
+const AWS_LAMDA_FUNCTION_NAME = process.env.AWS_LAMDA_ARN.split(':').pop();
+
 class S3 {
 
   /**
@@ -93,44 +95,14 @@ class S3 {
 
     const s3 = new aws.S3();
 
-    const bucketUrl = (await new Promise((resolve, reject) => {
-      const params = {
-        Bucket: `user-data-${uuidv4()}`,
-        ACL: "private",
-        CreateBucketConfiguration: {
-          LocationConstraint: 'us-west-2'
-        }
-      };
 
-      s3.createBucket(params, function (err, data) {
-        if (err) reject(err);
-        else resolve(data);
-      });
-    })).Location;
+    const bucketUrl = await S3.createBucket(`user-data-${uuidv4()}`, 'private');
 
     const bucketNameRegex = /user-data-[a-z0-9\-]+/;
     const bucketName = bucketNameRegex.exec(bucketUrl)[0];
 
-    // TODO: throws "Unable to validate the following destination configurations" until an event is manually added and deleted from the bucket in the AWS UI Console
-    // await new Promise((resolve, reject) => {
-    //   const params = {
-    //     Bucket: bucketName,
-    //     NotificationConfiguration: {
-    //       LambdaFunctionConfigurations: [
-    //         {
-    //           Id: `lambda-upload-notification-${bucketName}`,
-    //           LambdaFunctionArn: 'arn:aws:lambda:us-west-2:128878509512:function:respondS3Upload',
-    //           Events: ['s3:ObjectCreated:CompleteMultipartUpload']
-    //         },
-    //       ]
-    //     }
-    //   };
-    //
-    //   s3.putBucketNotificationConfiguration(params, function(err, data) {
-    //     if (err) reject(err);
-    //     else resolve(data);
-    //   });
-    // });
+    await S3.createLamdaPermission(bucketName);
+    await S3.createLamdaNotification(bucketName);
 
     return bucketName;
   }
@@ -155,6 +127,69 @@ class S3 {
     });
   }
 
+  static async createBucket(bucketName, acl) {
+    const s3 = new aws.S3();
+
+    const bucketUrl = (await new Promise((resolve, reject) => {
+      const params = {
+        Bucket:                    bucketName,
+        ACL:                       acl,
+        CreateBucketConfiguration: {
+          LocationConstraint: process.env.AWS_REGION
+        }
+      };
+
+      s3.createBucket(params, function (err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    })).Location;
+
+    return bucketUrl;
+  }
+
+  static async createLamdaPermission(bucketName) {
+    const lambda = new aws.Lambda();
+
+    return await new Promise((resolve, reject) => {
+      const params = {
+        Action: "lambda:InvokeFunction",
+        FunctionName: process.env.AWS_LAMDA_ARN,
+        Principal: "s3.amazonaws.com",
+        SourceAccount: process.env.AWS_ACCOUNT_ID,
+        SourceArn: `arn:aws:s3:::${bucketName}`,
+        StatementId: `${AWS_LAMDA_FUNCTION_NAME}-${bucketName}`
+      };
+      lambda.addPermission(params, function(err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
+
+  static async createLamdaNotification(bucketName) {
+    const s3 = new aws.S3();
+
+    return await new Promise((resolve, reject) => {
+      const params = {
+        Bucket: bucketName,
+        NotificationConfiguration: {
+          LambdaFunctionConfigurations: [
+            {
+              Id: `${AWS_LAMDA_FUNCTION_NAME}-${bucketName}`,
+              LambdaFunctionArn: process.env.AWS_LAMDA_ARN,
+              Events: ['s3:ObjectCreated:CompleteMultipartUpload']
+            },
+          ]
+        }
+      };
+
+      s3.putBucketNotificationConfiguration(params, function(err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    });
+  }
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
