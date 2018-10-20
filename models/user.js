@@ -4,7 +4,7 @@
 /* All database modifications go through the model; most querying is in the handlers.             */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-'use strict';
+'use strict'
 
 const Lib = require('../lib/lib.js');
 const ModelError = require('./modelerror.js');
@@ -12,6 +12,7 @@ const scrypt = require('scrypt');       // scrypt library
 const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const randomstring = require('randomstring');
 const fs = require('fs-extra');
+const Return = require('./return');
 
 class User {
 
@@ -22,14 +23,38 @@ class User {
    * @returns {Object} User details.
    */
   static async get(id) {
-    const [user] = await global.db.query('Select id, email, fname, lname, role, status From user Where id = :id', {id});
-    user[0].password = null;
-    return user[0];
+    const [[user]] = await global.db.query('Select id, uname, userTypeID, organizationID, securePasscode, publicPasscode From user Where id = :id', {id});
+    return user;
   }
 
-  static async deleteUser(ctx) {
-    const result = await global.db.query('delete from user where id = :id', {id: ctx.params.userID});
-    ctx.body = result;
+  static async getUser(ctx) {
+    try {
+      const user = await User.get(ctx.params.userID);
+      console.log('user', user);
+      ctx.body = Return.setReturn(user);
+    } catch (e) {
+      console.log('error in getUser', e);
+      ctx.body = Return.setReturn(null, false, e);
+      throw e;
+    }
+  }
+
+
+  static async setStatus(ctx) {
+    try{
+      const result = await global.db.query('update user set status = :status where id = :id', {status: ctx.request.body.status, id: ctx.request.body.userID});
+      ctx.body = Return.setReturn(result);
+    } catch (e) {
+      console.log('error in getUser', e);
+      ctx.body = Return.setReturn(null, false, e);
+      throw e;
+    }
+  }
+
+  static async update(ctx) {
+    console.log(ctx.request.body);
+    const result = await global.db.query('update user set uname = :uname, userTypeID = :userTypeID, organizationID = :organizationID where id = :id', {uname: ctx.request.body.uname, userTypeID: ctx.request.body.userTypeID, organizationID: ctx.request.body.organizationID, id: ctx.request.body.id});
+    ctx.body = Return.setReturn(result);
   }
 
   /**
@@ -66,6 +91,7 @@ class User {
     try {
       const payload = {
         id: user.id,                 // to get user details
+        userTypeID: user.userTypeID
       };
       const token = jwt.sign(payload, process.env.JWT_KEY, {expiresIn: process.env.TOKEN_TIME});
       const refreshToken = randomstring.generate(50);
@@ -125,9 +151,10 @@ class User {
     try {
       var newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
-      [result] = await global.db.query(`insert into user (uname, password) values (:uname, :pass)`, {
+      [result] = await global.db.query(`insert into user (uname, password, userTypeID) values (:uname, :pass, :userTypeID)`, {
         uname: ctx.request.body.uname,
-        pass: newPassword.toString("base64")
+        pass: newPassword.toString("base64"),
+        userTypeID: ctx.request.body.userTypeID
       });
     } catch (e) {
       console.log('error', e);
@@ -138,8 +165,10 @@ class User {
   }
 
   static async addLogo(ctx) {
-    let imageFile = ctx.request.body.files.uploadFile;
-    let destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
+    console.log(ctx.request.body.files);
+    const imageFile = ctx.request.body.files.uploadFile;
+    console.log('image', imageFile);
+    const destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
 
     await fs.copy(imageFile.path, destination)
       .then(() => {
@@ -151,6 +180,20 @@ class User {
       })
       .catch(err => console.log(err))
   }
+
+  static async getList(ctx) {
+    try {
+      const [result] = await global.db.query(`select u.id, u.uname, o.name 
+                                              from user u left join organization o on u.organizationID = o.id`);
+      ctx.body = Return.setReturn(result);
+    } catch (e) {
+      console.log('error in getUserTypes', e);
+      ctx.body = Return.setReturn(null, false, e);
+      throw e;
+    }
+
+  }
+
 }
 
 const makeCode = function(len = 6) {
@@ -160,7 +203,6 @@ const makeCode = function(len = 6) {
     text += possible.charAt(Math.floor(Math.random() * possible.length));
   return text;
 };
-
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 

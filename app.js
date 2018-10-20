@@ -25,6 +25,8 @@ const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
 const serve = require('koa-static');
 const mkdirp = require('mkdirp');
+const path = require('path');
+const Return = require('./models/return');
 
 const app = new Koa();
 
@@ -95,6 +97,11 @@ app.use(async function handleErrors(ctx, next) {
     await next();
   } catch (e) {
     ctx.status = e.status || 500;
+    if (!ctx.body || !ctx.body.success) {
+      if (typeof ctx.body !== 'object') {
+        ctx.body = Return.setReturn(null, false, e);
+      }
+    }
     switch (ctx.status) {
       case 204: // No Content
         break;
@@ -105,13 +112,13 @@ app.use(async function handleErrors(ctx, next) {
       case 404: // Not Found
       case 406: // Not Acceptable
       case 409: // Conflict
-        ctx.body = {message: e.message, root: 'error'};
         break;
       default:
       case 500: // Internal Server Error (for uncaught or programming errors)
         console.error(ctx.status, e.message);
-        ctx.body = {message: e.message, root: 'error'};
-        if (app.env != 'production') ctx.body.stack = e.stack;
+        if (app.env !== 'production'){
+          ctx.body.stack = e.stack;
+        }
         ctx.app.emit('error', e, ctx); // github.com/koajs/koa/wiki/Error-Handling
         break;
     }
@@ -153,7 +160,7 @@ app.use(koaLogger(logger, {}));
 // ------------ routing
 
 // public (unsecured) modules first
-let dirs = __dirname + '/logos';
+let dirs = path.join(__dirname, '/logos');
 console.log(dirs);
 mkdirp.sync(dirs);
 dirs = 'logos';
@@ -169,9 +176,13 @@ app.use(require('./routes/routes-pdf.js'));
 app.use(async function verifyJwt(ctx, next) {
   const rx = ctx.request.url.split('/');
   if (rx[1] !== 'logos') {
-    if (!ctx.header.authorization) ctx.throw(401, 'Authorisation required');
+    if (!ctx.header.authorization){
+      ctx.throw(401, 'Authorisation required');
+    }
     const [scheme, token] = ctx.header.authorization.split(' ');
-    if (scheme != 'Bearer') ctx.throw(401, 'Invalid authorisation');
+    if (scheme !== 'Bearer'){
+      ctx.throw(401, 'Invalid authorisation');
+    }
 
     try {
       const payload = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
@@ -179,7 +190,9 @@ app.use(async function verifyJwt(ctx, next) {
       ctx.state.user = payload;                  // for user id  to look up user details
       //console.log('user', ctx.state.user);
     } catch (e) {
-      if (e.message == 'invalid token') ctx.throw(401, 'Invalid JWT'); // Unauthorized
+      if (e.message === 'invalid token'){
+        ctx.throw(401, 'Invalid JWT');
+      } // Unauthorized
       ctx.throw(e.status || 500, e.message); // Internal Server Error
     }
   }
@@ -189,6 +202,17 @@ app.use(async function verifyJwt(ctx, next) {
 app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
 app.use(require('./routes/routes-codes.js'));
+app.use(require('./routes/routes-utility.js'));
+
+app.use(async function verifyAdmin(ctx, next) {
+  console.log(ctx.state.user);
+  if (ctx.state.user.userTypeID === 2) {
+    console.log('in');
+    await next();
+  }
+});
+
+app.use(require('./routes/routes-admin-user.js'));
 
 
 /* create server - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */

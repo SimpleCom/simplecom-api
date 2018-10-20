@@ -17,11 +17,9 @@ class Crypto {
    */
   static genKeyPair() {
     const key = new rsa();
-
     return key.generateKeyPair();  // This can take parameters to change key size.   key.generateKeyPair([bits], [exp]);  
                                                                                   // bits — {int} — key size in bits. 2048 by default.  
                                                                                   // exp — {int} — public exponent. 65537 by default.
-
   }
 
   /**

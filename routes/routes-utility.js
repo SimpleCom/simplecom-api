@@ -1,13 +1,12 @@
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
-/*  User routes                                                                                  */
+/*  Route to handle root element: return uri's for available resources & note on authentication   */
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
-'use strict';
-
 const router = require('koa-router')(); // router middleware for koa
-const user  = require('../models/user.js');
+const util = require('../models/utility');
 
-router.post('/user/:userID/logo', user.addLogo);
+router.get('/usertype', util.getUserTypes);
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = router.middleware();

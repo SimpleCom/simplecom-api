@@ -27,7 +27,6 @@ const User = require('../models/user.js');
 
 router.post('/user/login', User.getAuth);
 
-router.post('/user/register', User.register);
 // router.get('/jwt', async function getJWT(ctx) {
 //   if (!ctx.header.authorization) ctx.throw(401, 'Authorisation required');
 //   const [scheme, token] = ctx.header.authorization.split(' ');
