@@ -12,12 +12,14 @@ exports.handler = function (event, context) {
   };
   console.log(options);
   const req = https.request(options, (res) => {
-    var test = res.toString();
-    console.log(JSON.parse(test));
-    return true;
+    res.on('data', (d)=>{
+      console.log('data', d);
+      return true;
+    });
   });
-  if (req){
-    req.write('');
-    req.end();
-  }
+  req.on('error', (e)=>{
+    console.log('error', e);
+  });
+  req.write('');
+  req.end();
 };

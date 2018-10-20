@@ -9,6 +9,7 @@ const fs = require('fs');
 const aws = require('aws-sdk');
 const mkdirp = require('mkdirp');
 const uuidv4 = require('uuid/v4');
+const Return = require('return');
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS,
@@ -25,33 +26,36 @@ class S3 {
    * @returns {Object} User details.
    */
   static async hit(ctx) {
+    try {
+      console.log('bucket hit', ctx.params);
 
-    console.log('bucket hit', ctx.params);
+      const bucket = ctx.params.bucket;
+      const fileKey = ctx.params.key;
+      const s3 = new aws.S3();
+      const s3Params = {
+        Bucket: `/${bucket}`,
+        Key: fileKey,
+      };
 
-    const bucket = ctx.params.bucket;
-    const fileKey = ctx.params.key;
-    const s3 = new aws.S3();
-    const s3Params = {
-      Bucket: `/${bucket}`,
-      Key: fileKey,
-    };
+      //Find bucket in the user table
+      const [[user]] = await global.db.query(
+        'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
+        {sBucket: bucket, pBucket: bucket}
+      );
 
-    //Find bucket in the user table
-    const [[user]] = await global.db.query(
-      'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
-      { sBucket: bucket, pBucket: bucket }
-    );
+      const dir = __dirname + `/../decrypt/${user.id}/`;
+      mkdirp.sync(dir);
+      console.log(res, dir);
+      const file = fs.createWriteStream(`${dir}${fileKey}`);
 
-    const dir = __dirname + `/../decrypt/${user.id}/`;
-    mkdirp.sync(dir);
-    console.log(res, dir);
-    const file = fs.createWriteStream(`${dir}${fileKey}`);
+      s3.getObject(s3Params).createReadStream().on('error', function (err) {
+        console.log(err);
+      }).pipe(file);
 
-    s3.getObject(s3Params).createReadStream().on('error', function(err){
-      console.log(err);
-    }).pipe(file);
-
-    ctx.body = 'Success';
+      ctx.body = Return.setReturn('success');
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
   }
 
   // UPLOAD ORGANIZATION
