@@ -202,6 +202,7 @@ class User {
     try {
       const [result] = await global.db.query(`select id, name
                                               from userType`);
+      console.log('res', result);
       ctx.body = Return.setReturn(result);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
