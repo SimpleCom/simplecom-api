@@ -8,7 +8,7 @@ const router = require('koa-router')(); // router middleware for koa
 const organization  = require('../models/organization.js');
 
 router.post('/organization/:organizationID/logo', organization.addLogo);
-router.get('/organization/:organizationID/logo', organization.getLogo);
+//router.get('/organization/:organizationID/logo', organization.getLogo);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
