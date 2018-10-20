@@ -56,7 +56,6 @@ class Organization {
     }
   }
 
-
   static async add(ctx) {
     try {
       const response = await global.db.query(`insert into organization (name) values (:name)`, {name: ctx.request.body.name});
