@@ -58,8 +58,6 @@ class S3 {
         // Delete the object from the bucket
         s3.deleteObject(s3Params, () => {
           console.log(`File ${dir}${fileKey} deleted.`);
-          ctx.body = Return.setReturn('success');
-          return true;
         });
       }).createReadStream().on('error', function (err) {
         console.log(err);
