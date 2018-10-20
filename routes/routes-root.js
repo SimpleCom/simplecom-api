@@ -13,7 +13,7 @@ router.get('/', function getRoot(ctx) {
     const authentication = '‘GET /user/login’ to obtain JSON Web Token; subsequent requests require JWT auth';
     ctx.body = { resources: resources, authentication: authentication };
 });
-router.get('/S3/:bucket/:key', s3.hit);
+router.get('/hit/:bucket/:key', s3.hit);
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 

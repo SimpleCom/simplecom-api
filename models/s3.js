@@ -9,7 +9,7 @@ const fs = require('fs');
 const aws = require('aws-sdk');
 const mkdirp = require('mkdirp');
 const uuidv4 = require('uuid/v4');
-const Return = require('return');
+const Return = require('./return');
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS,
