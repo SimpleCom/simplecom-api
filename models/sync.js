@@ -91,14 +91,14 @@ class Sync {
         userId: ctx.state.user.id, // TODO: remove when s3 lambda events are working
         lists: lists,
         s: {
-          s3Bucket: 'simplecom', //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
+          s3Bucket: 'simplecom-uploads', //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.secureAwsAccessKey,
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey,
         },
         p: {
-          s3Bucket: 'simplecom', //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
+          s3Bucket: 'simplecom-uploads', //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.publicAwsAccessKey,
           awsSecret: user.publicAwsSecret,
           passcode: user.publicPasscode,

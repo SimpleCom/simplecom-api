@@ -10,6 +10,7 @@ const aws = require('aws-sdk');
 const mkdirp = require('mkdirp');
 const uuidv4 = require('uuid/v4');
 const Return = require('./return');
+const path = require('path');
 
 aws.config.update({
   accessKeyId: process.env.AWS_ACCESS,
@@ -43,16 +44,16 @@ class S3 {
         {sBucket: bucket, pBucket: bucket}
       );
 
-      const dir = __dirname + `/../decrypt/${user.id}/`;
+      const dir = path.join(__dirname, `/../decrypt/${user.id}/`);
       mkdirp.sync(dir);
-      console.log(res, dir);
       const file = fs.createWriteStream(`${dir}${fileKey}`);
 
-      s3.getObject(s3Params).createReadStream().on('error', function (err) {
+      s3.getObject(s3Params, () => {
+
+      }).createReadStream().on('error', function (err) {
         console.log(err);
       }).pipe(file);
 
-      ctx.body = Return.setReturn('success');
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
     }
