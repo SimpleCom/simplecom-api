@@ -37,8 +37,8 @@ class Sync {
       const securePair = crypto.genKeyPair();
       const publicPair = crypto.genKeyPair();
 
-      const secureBucket = null; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
-      const publicBucket = null; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
+      const secureBucket = 'simplecom-uploads'; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
+      const publicBucket = 'simplecom-uploads'; // await S3.createUserBucket(); // TODO: change back when s3 lambda events are working
 
       await global.db.query(
         `Update user SET
@@ -91,14 +91,14 @@ class Sync {
         userId: ctx.state.user.id, // TODO: remove when s3 lambda events are working
         lists: lists,
         s: {
-          s3Bucket: 'simplecom-uploads', //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
+          s3Bucket: secureBucket, //user.secureS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.secureAwsAccessKey,
           awsSecret: user.secureAwsSecret,
           passcode: user.securePasscode,
           rsaPublicKey: user.secureRsaPublicKey,
         },
         p: {
-          s3Bucket: 'simplecom-uploads', //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
+          s3Bucket: publicBucket, //user.publicS3Bucket, // TODO: change back when s3 lambda events are working
           awsAccessKey: user.publicAwsAccessKey,
           awsSecret: user.publicAwsSecret,
           passcode: user.publicPasscode,
