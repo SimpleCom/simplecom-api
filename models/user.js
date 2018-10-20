@@ -194,7 +194,8 @@ class User {
     try {
       const [result] = await global.db.query(`select u.id, u.uname, o.name, u.status
                                               from user u
-                                                     left join organization o on u.organizationID = o.id`);
+                                                     left join organization o on u.organizationID = o.id
+      order by u.status desc, u.uname asc`);
       ctx.body = Return.setReturn(result);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
