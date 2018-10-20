@@ -57,7 +57,8 @@ class S3 {
       console.log('fileName', fileName);
       const file = fs.createWriteStream(`${dir}${fileName}`);
 
-      s3.getObject(s3Params, () => {
+      s3.getObject(s3Params, (error, data) => {
+        console.log('data', data);
         // Delete the object from the bucket
         // s3.deleteObject(s3Params, () => {
         //   console.log(`File ${dir}${file} deleted.`);
