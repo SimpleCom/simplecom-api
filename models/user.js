@@ -28,6 +28,7 @@ class User {
   }
 
   static async getUser(ctx) {
+    console.log('getUser');
     try {
       const user = await User.get(ctx.params.userID);
       ctx.body = Return.setReturn(user);
@@ -36,7 +37,6 @@ class User {
       throw e;
     }
   }
-
 
   static async setStatus(ctx) {
     try {
@@ -173,21 +173,21 @@ class User {
   }
 
   static async register(ctx) {
-    let result;
+    console.log('register');
     try {
-      var newPassword = '';
+      let newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
-      [result] = await global.db.query(`insert into user (uname, password, userTypeID)
+      const [result] = await global.db.query(`insert into user (uname, password, userTypeID)
                                         values (:uname, :pass, :userTypeID)`, {
         uname: ctx.request.body.uname,
         pass: newPassword.toString("base64"),
         userTypeID: ctx.request.body.userTypeID
       });
+      ctx.body = Return.setReturn(result);
     } catch (e) {
-      result = [{error: 1}];
+      ctx.body = Return.setReturn(null, false, e);
+      throw e;
     }
-    ctx.body = result; //Return only the ID
-    ctx.body.root = 'Result';
   }
 
   static async getList(ctx) {
