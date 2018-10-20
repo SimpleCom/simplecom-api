@@ -5,7 +5,7 @@
 'use strict';
 
 const router = require('koa-router')(); // router middleware for koa
-const organization  = require('../models.js');
+const organization  = require('../models/organization');
 router.prefix('/organization');
 router.post('/:organizationID/logo', organization.addLogo);
 router.get('/:organizationID', organization.get);
