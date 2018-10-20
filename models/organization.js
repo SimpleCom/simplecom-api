@@ -36,7 +36,7 @@ class Organization {
 
   static async getAll(ctx) {
     try {
-      const [response] = await global.db.query(`select id, name
+      const [response] = await global.db.query(`select id, name, logo
                                                 from organization`);
       ctx.body = Return.setReturn(response);
     } catch (e) {
