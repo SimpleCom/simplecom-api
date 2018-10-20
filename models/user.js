@@ -121,8 +121,6 @@ class User {
   }
 
   static async register(ctx) {
-    console.log(ctx.request.body.uname);
-    console.log(ctx.request.body.pass)
     let result;
     try {
       var newPassword = '';
@@ -155,12 +153,11 @@ class User {
   }
 }
 
-const makeCode = function() {
+const makeCode = function(len = 6) {
   var text = "";
   var possible = "BCDFGHJKLMNPQRSTVWXYZ0123456789";
-  for (var i = 0; i < 6; i++)
+  for (var i = 0; i < len; i++)
     text += possible.charAt(Math.floor(Math.random() * possible.length));
-
   return text;
 };
 
