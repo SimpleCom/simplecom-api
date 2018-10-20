@@ -24,6 +24,8 @@ const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
 const mkdirp = require('mkdirp');
 const Return = require('./models/return');
+const router = require('koa-router')(); // router middleware for koa
+
 
 const app = new Koa();
 
@@ -63,7 +65,7 @@ app.use(async function robots(ctx, next) {
 });
 
 // parse request body into ctx.request.body
-app.use(body({ multipart: true }));
+app.use(body({multipart: true}));
 
 // set signed cookie keys for JWT cookie & session cookie
 app.keys = ['7R%k2s*d$ehj76w@ere'];
@@ -112,7 +114,7 @@ app.use(async function handleErrors(ctx, next) {
         break;
       default:
       case 500: // Internal Server Error (for uncaught or programming errors)
-        if (app.env !== 'production'){
+        if (app.env !== 'production') {
           ctx.body.stack = e.stack;
         }
         ctx.app.emit('error', e, ctx); // github.com/koajs/koa/wiki/Error-Handling
@@ -165,11 +167,11 @@ app.use(require('./routes/routes-pdf.js'));
 app.use(async function verifyJwt(ctx, next) {
   const rx = ctx.request.url.split('/');
   if (rx[1] !== 'logos') {
-    if (!ctx.header.authorization){
+    if (!ctx.header.authorization) {
       ctx.throw(401, 'Authorization required');
     }
     const [scheme, token] = ctx.header.authorization.split(' ');
-    if (scheme !== 'Bearer'){
+    if (scheme !== 'Bearer') {
       ctx.throw(401, 'Invalid authorization');
     }
 
@@ -178,7 +180,7 @@ app.use(async function verifyJwt(ctx, next) {
       // valid token: accept it...
       ctx.state.user = payload;                  // for user id  to look up user details
     } catch (e) {
-      if (e.message === 'invalid token'){
+      if (e.message === 'invalid token') {
         ctx.throw(401, 'Invalid JWT');
       } // Unauthorized
       ctx.throw(e.status || 500, e.message); // Internal Server Error
@@ -208,6 +210,8 @@ app.use(require('./routes/routes-utility.js'));
 app.use(async function verifyAdmin(ctx, next) {
   if (ctx.state.user.userTypeID === 2) {
     await next();
+  } else {
+    ctx.throw(401, 'Invalid authorization');
   }
 });
 
