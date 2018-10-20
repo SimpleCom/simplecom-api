@@ -166,11 +166,11 @@ app.use(async function verifyJwt(ctx, next) {
   const rx = ctx.request.url.split('/');
   if (rx[1] !== 'logos') {
     if (!ctx.header.authorization){
-      ctx.throw(401, 'Authorisation required');
+      ctx.throw(401, 'Authorization required');
     }
     const [scheme, token] = ctx.header.authorization.split(' ');
     if (scheme !== 'Bearer'){
-      ctx.throw(401, 'Invalid authorisation');
+      ctx.throw(401, 'Invalid authorization');
     }
 
     try {
@@ -185,6 +185,18 @@ app.use(async function verifyJwt(ctx, next) {
     }
   }
   await next();
+});
+
+// CHECK USER STATUS
+app.use(async function checkStatus(ctx, next) {
+  // CHECK STATUS FROM DATABASE
+  const [[result]] = await ctx.state.db.query("SELECT status, userTypeID FROM user WHERE id=:id", {id: ctx.state.user.id});
+  // THIS OVERWRITES THE JWT VALUE
+  ctx.state.user.userTypeID = result.userTypeID;
+  if (result.status !== 1) {
+    ctx.throw(401, 'Invalid authorization');
+    return 0;
+  } else await next();
 });
 
 app.use(require('./routes/routes-list.js'));

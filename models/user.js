@@ -40,9 +40,10 @@ class User {
 
   static async setStatus(ctx) {
     try {
+      const userID = ctx.params.userID;
       const result = await global.db.query('update user set status = :status where id = :id', {
         status: ctx.request.body.status,
-        id: ctx.request.body.userID
+        id: userID
       });
       ctx.body = Return.setReturn(result);
     } catch (e) {
@@ -94,6 +95,10 @@ class User {
     } else {
       [user] = await User.getByUname(ctx.request.body.uname);
       if (!user) ctx.throw(401, 'Username/password not found');
+      if (user.status !== 1) {
+        ctx.throw(401, 'Invalid authorization');
+        return 0;
+      }
       // check password
       try {
         const match = await scrypt.verifyKdf(Buffer.from(user.password, 'base64'), ctx.request.body.pass);

@@ -8,137 +8,190 @@
 
 const Lib = require('../lib/lib.js');
 const ModelError = require('./modelerror.js');
+const Return = require('./return');
 
 class List {
 
   static async getLists(ctx) {
-    const [ list ] = await global.db.query(
-      'Select id, name from contactList where userID = :userID',
-      { userID: ctx.state.user.id }
-    );
-    ctx.body = list;
+    try {
+      const [list] = await global.db.query(
+        'Select id, name from contactList where userID = :userID',
+        {userID: ctx.state.user.id}
+      );
+      ctx.body = Return.setReturn(list);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async getListsWithContacts(ctx) {
-    const [list] = await global.db.query(
-      `SELECT l.id as listID, l.name as listName, c.id, c.name, c.email
-      FROM contactList as l LEFT JOIN contact as c
-      ON l.id = c.listID
-      WHERE l.userID = :userID`,
-      { userID: ctx.state.user.id }
-    );
-
-    ctx.body = Object.values(list.reduce((nestedList, value) => {
-      const contact = {
-        id: value.id,
-        name: value.name,
-        email: value.email
-      };
-      nestedList[value.listID] ?
-        nestedList[value.listID].contacts.push(contact) :
-        nestedList[value.listID] = {
-          id: value.listID,
-          name: value.listName,
-          contacts: contact.id ? [contact] : []
+    try {
+      const [list] = await global.db.query(
+          `SELECT l.id as listID, l.name as listName, c.id, c.name, c.email
+           FROM contactList as l
+                  LEFT JOIN contact as c ON l.id = c.listID
+           WHERE l.userID = :userID`,
+        {userID: ctx.state.user.id}
+      );
+      const lists = Object.values(list.reduce((nestedList, value) => {
+        const contact = {
+          id: value.id,
+          name: value.name,
+          email: value.email
         };
-      return nestedList;
-    }, {}));
+
+        nestedList[value.listID] = nestedList[value.listID] ?
+          nestedList[value.listID].contacts.push(contact) :
+          nestedList[value.listID] = {
+            id: value.listID,
+            name: value.listName,
+            contacts: contact.id ? [contact] : []
+          };
+        return nestedList;
+      }, {}));
+      console.log(lists);
+      ctx.body = Return.setReturn(lists);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async createList(ctx) {
-    const [result] = await global.db.query(
-      'Insert into contactList (name, userID) VALUES (:name, :userID)',
-      { name: ctx.request.body.name, userID: ctx.state.user.id }
-    );
-    ctx.body = {
-      id: result.insertId,
-      name: ctx.request.body.name
-    };
+    try {
+      const [result] = await global.db.query(
+        'Insert into contactList (name, userID) VALUES (:name, :userID)',
+        {name: ctx.request.body.name, userID: ctx.state.user.id}
+      );
+      const response = {
+        id: result.insertId,
+        name: ctx.request.body.name
+      };
+      ctx.body = Return.setReturn(response);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async getListDetails(ctx) {
-    const [[list]] = await global.db.query(
-      'Select id, name from contactList where id = :id and userID = :userID',
-      { id: ctx.params.listID, userID: ctx.state.user.id }
-    );
-    ctx.body = list;
+    try {
+      const [[list]] = await global.db.query(
+        'Select id, name from contactList where id = :id and userID = :userID',
+        {id: ctx.params.listID, userID: ctx.state.user.id}
+      );
+      ctx.body = Return.setReturn(list);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
   }
 
   static async updateList(ctx) {
-    await global.db.query(
-      'Update contactList SET name = :name where id = :id and userID = :userID',
-      { name: ctx.request.body.name, id: ctx.params.listID, userID: ctx.state.user.id }
-    );
-    ctx.body = {
-      id: ctx.params.listID,
-      name: ctx.request.body.name
-    };
+    try {
+      await global.db.query(
+        'Update contactList SET name = :name where id = :id and userID = :userID',
+        {name: ctx.request.body.name, id: ctx.params.listID, userID: ctx.state.user.id}
+      );
+      const ret = {
+        id: ctx.params.listID,
+        name: ctx.request.body.name
+      };
+      ctx.body = Return.setReturn(ret);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async deleteList(ctx) {
-    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
+    try {
+      await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
-    await global.db.query(
-      'Delete from contactList where id = :id',
-      { id: ctx.params.listID }
-    );
+      await global.db.query(
+        'Delete from contactList where id = :id',
+        {id: ctx.params.listID}
+      );
 
-    await global.db.query(
-      'Delete from contact where listID = :listID',
-      { listID: ctx.params.listID }
-    );
+      await global.db.query(
+        'Delete from contact where listID = :listID',
+        {listID: ctx.params.listID}
+      );
 
-    ctx.body = null;
+      ctx.body = Return.setReturn('deleted');
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async getContacts(ctx) {
-    const [contacts] = await global.db.query(
-      `SELECT l.name as listName, c.id, c.name, c.email
-      FROM contactList as l INNER JOIN contact as c
-      ON l.id = c.listID
-      WHERE l.userID = :userID AND l.id = :listID`,
-      { listID: ctx.params.listID, userID: ctx.state.user.id }
-    );
-    ctx.body = {
-      listName: contacts[0] && contacts[0].listName,
-      contacts: contacts
-    };
+    try {
+      const [contacts] = await global.db.query(
+          `SELECT l.name as listName, c.id, c.name, c.email
+           FROM contactList as l
+                  INNER JOIN contact as c ON l.id = c.listID
+           WHERE l.userID = :userID
+             AND l.id = :listID`,
+        {listID: ctx.params.listID, userID: ctx.state.user.id}
+      );
+      const ret = {
+        listName: contacts[0] && contacts[0].listName,
+        contacts: contacts
+      };
+      ctx.body = Return.setReturn(ret);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async addContact(ctx) {
-    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
+    try {
+      await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
-    const [result] = await global.db.query(
-      'Insert into contact (listID, name, email) VALUES (:listID, :name, :email)',
-      {
-        listID: ctx.params.listID,
+      const [result] = await global.db.query(
+        'Insert into contact (listID, name, email) VALUES (:listID, :name, :email)',
+        {
+          listID: ctx.params.listID,
+          name: ctx.request.body.name,
+          email: ctx.request.body.email
+        }
+      );
+      const ret = {
+        id: result.insertId,
         name: ctx.request.body.name,
         email: ctx.request.body.email
-      }
-    );
-    ctx.body = {
-      id: result.insertId,
-      name: ctx.request.body.name,
-      email: ctx.request.body.email
-    };
+      };
+      ctx.body = Return.setReturn(ret);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async updateContact(ctx) {
-    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
+    try {
+      await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
-    await global.db.query(
-      'Update contact SET name = :name, email = :email where id = :contactID',
-      {
-        contactID: ctx.params.contactID,
+      await global.db.query(
+        'Update contact SET name = :name, email = :email where id = :contactID',
+        {
+          contactID: ctx.params.contactID,
+          name: ctx.request.body.name,
+          email: ctx.request.body.email
+        }
+      );
+      const ret = {
+        id: ctx.params.listID,
         name: ctx.request.body.name,
         email: ctx.request.body.email
-      }
-    );
-    ctx.body = {
-      id: ctx.params.listID,
-      name: ctx.request.body.name,
-      email: ctx.request.body.email
-    };
+      };
+      ctx.body = Return.setReturn(ret);
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async deleteContact(ctx) {
@@ -146,18 +199,18 @@ class List {
 
     await global.db.query(
       'Delete from contact where id = :id',
-      { id: ctx.params.contactID }
+      {id: ctx.params.contactID}
     );
     ctx.body = null;
   }
 
-  static async checkPermissions(ctx, listID, user){
+  static async checkPermissions(ctx, listID, user) {
     const [[list]] = await global.db.query(
       'Select userID from contactList where id = :id',
-      { id: listID }
+      {id: listID}
     );
 
-    if(!list || list.userID !== user.id){
+    if (!list || list.userID !== user.id) {
       ctx.throw(403, 'You do not have permission to modify this list');
     }
   }
