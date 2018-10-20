@@ -59,9 +59,9 @@ class S3 {
 
       s3.getObject(s3Params, () => {
         // Delete the object from the bucket
-        s3.deleteObject(s3Params, () => {
-          console.log(`File ${dir}${fileKey} deleted.`);
-        });
+        // s3.deleteObject(s3Params, () => {
+        //   console.log(`File ${dir}${file} deleted.`);
+        // });
       }).createReadStream().on('error', function (err) {
         console.log(err);
       }).pipe(file);
