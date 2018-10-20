@@ -13,8 +13,8 @@ const user  = require('../models/organization.js');
 //router.get('/user/getteams', user.getTeams);    // get all user roles
 //router.put('/user/save/:userID', user.save);    // update a user
 //router.post('/user/addTeam', user.addTeam);    // update a user
-router.post('/organization/:organizationID/logo', user.addLogo);
-router.get('/organization/:organizationID/logo', user.getLogo);
+router.post('/organization/:organizationID/logo', organization.addLogo);
+router.get('/organization/:organizationID/logo', organization.getLogo);
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 
 module.exports = router.middleware();
