@@ -87,7 +87,7 @@ class S3 {
     const s3 = new aws.S3();
     return (await new Promise((resolve, reject) => {
       s3.putObject({
-        Bucket: 'simplecom-logos',
+        Bucket: process.env.AWS_BUCKET,
         Key: fileName,
         Body: base64data,
         ACL: 'public-read'
