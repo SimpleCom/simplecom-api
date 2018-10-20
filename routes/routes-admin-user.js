@@ -8,6 +8,7 @@ const user = require('../models/user.js');
 router.prefix('/user/');
 router.get('/:userID', user.getUser);    // get one user
 router.get('/list', user.getList);       // get all users
+router.get('/types', user.getUserTypes); // get all userTypes
 router.post('/register', user.register); // add a user
 router.put('/:userID', user.update);     // update a user
 router.put('/status', user.setStatus);   // update a user status
