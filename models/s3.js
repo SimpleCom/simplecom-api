@@ -44,12 +44,23 @@ class S3 {
         {sBucket: bucket, pBucket: bucket}
       );
 
-      const dir = path.join(__dirname, `/../decrypt/${user.id}/`);
-      mkdirp.sync(dir);
-      const file = fs.createWriteStream(`${dir}${fileKey}`);
+      const fileSplit = fileKey.split('/');
+      fileSplit.shift();
+      const fileName = fileSplit.pop();
+      const dirAdd = fileSplit.join('/');
+      const dir = path.join(__dirname, `/../decrypt/${user.id}/${dirAdd}/`);
+      const mkres = mkdirp.sync(dir);
+      console.log('made dir', dir, mkres);
+      console.log('fileName', fileName);
+      const file = fs.createWriteStream(`${dir}${fileName}`);
 
       s3.getObject(s3Params, () => {
-
+        // Delete the object from the bucket
+        s3.deleteObject(s3Params, () => {
+          console.log(`File ${dir}${fileKey} deleted.`);
+          ctx.body = Return.setReturn('success');
+          return true;
+        });
       }).createReadStream().on('error', function (err) {
         console.log(err);
       }).pipe(file);
