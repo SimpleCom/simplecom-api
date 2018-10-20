@@ -66,7 +66,6 @@ class Member {
         try {
 
             const [result] = await global.db.query('Insert Into Member Set ?', [values]);
-            //console.log('Member.insert', result.insertId, new Date); // eg audit trail?
             return result.insertId;
 
         } catch (e) {
@@ -103,7 +102,6 @@ class Member {
         try {
 
             await global.db.query('Update Member Set ? Where MemberId = ?', [ values, id ]);
-            //console.log('Member.update', id, new Date); // eg audit trail?
 
         } catch (e) {
             switch (e.code) { // just use default MySQL messages for now
@@ -132,7 +130,6 @@ class Member {
         try {
 
             await global.db.query('Delete From Member Where MemberId = :id', { id });
-            //console.log('Member.delete', id, new Date); // eg audit trail?
 
         } catch (e) {
             switch (e.code) {

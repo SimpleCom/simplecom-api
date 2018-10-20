@@ -28,8 +28,6 @@ class S3 {
    */
   static async hit(ctx) {
     try {
-      console.log('bucket hit', ctx.params);
-
       const bucket = ctx.params.bucket;
       const fileKey = ctx.params.key;
       const s3 = new aws.S3();
@@ -44,25 +42,16 @@ class S3 {
         {sBucket: bucket, pBucket: bucket}
       );
 
-      console.log('user', user);
-
       const fileSplit = fileKey.split('/');
       fileSplit.shift();
       const fileName = fileSplit.pop();
       const dirAdd = fileSplit.join('/');
       const dir = path.join(__dirname, `/../decrypt/${user.id}/${dirAdd}/`);
-      console.log('mkdirp', dir);
       const mkres = mkdirp.sync(dir);
-      console.log('made dir', dir, mkres);
-      console.log('fileName', fileName);
       const file = fs.createWriteStream(`${dir}${fileName}`);
 
       s3.getObject(s3Params, (error, data) => {
-        console.log('data', data);
-        // Delete the object from the bucket
-        // s3.deleteObject(s3Params, () => {
-        //   console.log(`File ${dir}${file} deleted.`);
-        // });
+        console.log('data');
       }).createReadStream().on('error', function (err) {
         console.log(err);
       }).pipe(file);
@@ -97,28 +86,6 @@ class S3 {
       });
     }));
   }
-
-    // CREATE S3 BUCKET -- has errors
-    // const bucketUrl = (await new Promise((resolve, reject) => {
-    //   const params = {
-    //     Bucket: `simplecom-uploads`,
-    //     ACL: "public",
-    //     CreateBucketConfiguration: {
-    //       LocationConstraint: 'us-west-2'
-    //     }
-    //   };
-
-    //   s3.createBucket(params, function (err, data) {
-    //     if (err) reject(err);
-    //     else resolve(data);
-    //   });
-    // })).Location;
-
-    // const bucketNameRegex = /user-data-[a-z0-9\-]+/;
-    // const bucketName = bucketNameRegex.exec(bucketUrl)[0];
-    // console.log(bucketUrl);
-    // console.log(bucketName);
-    //}
   
   static async createUserBucket() {
 
@@ -177,7 +144,7 @@ class S3 {
     return await new Promise(resolve => {
       s3.deleteBucket(params, function (err, data) {
         if (err){
-          console.log(`Unable to delete bucket ${bucketName}`, err);
+          console.log(`Unable to delete bucket`);
           resolve();
         } else {
           resolve(data);

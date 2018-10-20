@@ -51,7 +51,6 @@ class Pdf {
     let top = 20;
     let left = 25;
     for(const img of data.images){
-      console.log(top, left);
       doc.image(img.img, left, top, { height: 200, left: 100 } )
           .text(img.caption + top, left, top + 205);
       if (left > 25) {
@@ -59,7 +58,6 @@ class Pdf {
         if (top < 400){
           top += 230;
         } else {
-          console.log('new page');
           doc.addPage();
           top = 20;
         }

@@ -30,10 +30,8 @@ class User {
   static async getUser(ctx) {
     try {
       const user = await User.get(ctx.params.userID);
-      console.log('user', user);
       ctx.body = Return.setReturn(user);
     } catch (e) {
-      console.log('error in getUser', e);
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }
@@ -45,14 +43,12 @@ class User {
       const result = await global.db.query('update user set status = :status where id = :id', {status: ctx.request.body.status, id: ctx.request.body.userID});
       ctx.body = Return.setReturn(result);
     } catch (e) {
-      console.log('error in getUser', e);
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }
   }
 
   static async update(ctx) {
-    console.log(ctx.request.body);
     const result = await global.db.query('update user set uname = :uname, userTypeID = :userTypeID, organizationID = :organizationID where id = :id', {uname: ctx.request.body.uname, userTypeID: ctx.request.body.userTypeID, organizationID: ctx.request.body.organizationID, id: ctx.request.body.id});
     ctx.body = Return.setReturn(result);
   }
@@ -76,14 +72,11 @@ class User {
     } else {
       [user] = await User.getByUname(ctx.request.body.uname);
       if (!user) ctx.throw(401, 'Username/password not found');
-      //console.log('user', user);
-      //console.log('test', user);
       // check password
       try {
         const match = await scrypt.verifyKdf(Buffer.from(user.password, 'base64'), ctx.request.body.pass);
         if (!match) ctx.throw(401, 'Username/password not found.');
       } catch (e) { // e.g. "data is not a valid scrypt-encrypted block"
-        //ctx.throw(404, e.message);
         ctx.throw(401, 'Username/password not found!');
       }
     }
@@ -107,8 +100,7 @@ class User {
         expires: decoded.exp,
       };
     } catch (e) { // e.g. "data is not a valid scrypt-encrypted block"
-      ctx.throw(404, e.message);
-      //ctx.throw(404, 'Username/password not found!');
+      ctx.throw(404, 'Username/password not found!');
     }
   }
 
@@ -157,7 +149,6 @@ class User {
         userTypeID: ctx.request.body.userTypeID
       });
     } catch (e) {
-      console.log('error', e);
       result = [{error: 1}];
     }
     ctx.body = result; //Return only the ID
@@ -170,7 +161,6 @@ class User {
                                               from user u left join organization o on u.organizationID = o.id`);
       ctx.body = Return.setReturn(result);
     } catch (e) {
-      console.log('error in getUserTypes', e);
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }

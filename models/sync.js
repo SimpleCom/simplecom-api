@@ -14,7 +14,6 @@ const S3 = require('./s3.js');
 class Sync {
 
   static async sync(ctx) {
-    console.log("syncing");
     ctx.body = {};
     await User.getAuth(ctx);
     if (ctx.body.jwt) {
