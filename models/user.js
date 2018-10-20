@@ -175,7 +175,7 @@ class User {
   static async register(ctx) {
     let result;
     try {
-      var newPassword = '';
+      let newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
       [result] = await global.db.query(`insert into user (uname, password, userTypeID)
                                         values (:uname, :pass, :userTypeID)`, {
@@ -188,6 +188,46 @@ class User {
     }
     ctx.body = result; //Return only the ID
     ctx.body.root = 'Result';
+  }
+
+  static async updatePassword(ctx) {
+    //console.log(ctx);
+    // only admin can edit other user's password
+    // length > 8
+    const id = Number(ctx.params.userID);
+    const userType = ctx.params.userTypeID;
+    const pass = ctx.request.body.pass;
+
+    console.log(pass.length);  // remove
+
+    if (pass.length >= 8) {
+      let editSelf = false;
+      if (ctx.state.user.id === id) editSelf = true;
+      
+      console.log(ctx.state.user.id);
+      console.log(ctx.params.userID);
+      console.log(editSelf);
+      console.log(ctx.state.user.id === id);
+      console.log(typeof ctx.state.user.id, typeof id);
+
+      if (editSelf === true || userType == 2) {
+        try {
+          let newPassword = '';
+          while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
+          await global.db.query(`UPDATE user SET password 
+                                            WHERE id=:pass`, { pass: pass});
+          return "success";
+        } catch (e) {
+          return  [{error: 1}];
+        }
+
+      } else {
+        return 0;
+      }
+
+
+    } else
+    ctx.throw(401, 'Password needs to be longer than 8 characters.');
   }
 
   static async getList(ctx) {
