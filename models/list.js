@@ -195,24 +195,35 @@ class List {
   }
 
   static async deleteContact(ctx) {
-    await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
+    try {
+      await List.checkPermissions(ctx, ctx.params.listID, ctx.state.user);
 
-    await global.db.query(
-      'Delete from contact where id = :id',
-      {id: ctx.params.contactID}
-    );
-    ctx.body = null;
+      await global.db.query(
+        'Delete from contact where id = :id',
+        {id: ctx.params.contactID}
+      );
+      ctx.body = Return.setReturn('deleted');
+    } catch (e) {
+      ctx.body = Return.setReturn(null, false, e);
+    }
+
   }
 
   static async checkPermissions(ctx, listID, user) {
-    const [[list]] = await global.db.query(
-      'Select userID from contactList where id = :id',
-      {id: listID}
-    );
+    try {
+      const [[list]] = await global.db.query(
+        'Select userID from contactList where id = :id',
+        {id: listID}
+      );
 
-    if (!list || list.userID !== user.id) {
+      if (!list || list.userID !== user.id) {
+        ctx.throw(403, 'You do not have permission to modify this list');
+      }
+      ctx.body = Return.setReturn('permitted');
+    } catch (e) {
       ctx.throw(403, 'You do not have permission to modify this list');
     }
+
   }
 }
 
