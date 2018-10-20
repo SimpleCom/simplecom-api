@@ -121,8 +121,6 @@ class User {
   }
 
   static async register(ctx) {
-    console.log(ctx.request.body.uname);
-    console.log(ctx.request.body.pass)
     let result;
     try {
       var newPassword = '';
@@ -140,8 +138,8 @@ class User {
   }
 
   static async addLogo(ctx) {
-    let imageFile = ctx.request.body.files.uploadFile;
-    let destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
+    const imageFile = ctx.request.body.files.uploadFile;
+    const destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
 
     await fs.copy(imageFile.path, destination)
       .then(() => {

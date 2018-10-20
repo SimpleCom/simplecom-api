@@ -23,7 +23,7 @@ const cors = require('koa2-cors');   // CORS for Koa 2
 const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
-const serve = require('koa-static');
+//const serve = require('koa-static');
 const mkdirp = require('mkdirp');
 
 const app = new Koa();
@@ -152,12 +152,6 @@ app.use(koaLogger(logger, {}));
 
 // ------------ routing
 
-// public (unsecured) modules first
-let dirs = __dirname + '/logos';
-console.log(dirs);
-mkdirp.sync(dirs);
-dirs = 'logos';
-app.use(serve(dirs));
 
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
@@ -188,6 +182,7 @@ app.use(async function verifyJwt(ctx, next) {
 
 app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
+app.use(require('./routes/routes-organization.js'));
 app.use(require('./routes/routes-codes.js'));
 
 
