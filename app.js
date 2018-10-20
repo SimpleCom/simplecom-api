@@ -112,7 +112,6 @@ app.use(async function handleErrors(ctx, next) {
         break;
       default:
       case 500: // Internal Server Error (for uncaught or programming errors)
-        console.error(ctx.status, e.message);
         if (app.env !== 'production'){
           ctx.body.stack = e.stack;
         }
@@ -178,7 +177,6 @@ app.use(async function verifyJwt(ctx, next) {
       const payload = jwt.verify(token, process.env.JWT_KEY); // throws on invalid token
       // valid token: accept it...
       ctx.state.user = payload;                  // for user id  to look up user details
-      //console.log('user', ctx.state.user);
     } catch (e) {
       if (e.message === 'invalid token'){
         ctx.throw(401, 'Invalid JWT');
@@ -196,7 +194,6 @@ app.use(require('./routes/routes-codes.js'));
 app.use(require('./routes/routes-utility.js'));
 
 app.use(async function verifyAdmin(ctx, next) {
-  console.log(ctx.state.user);
   if (ctx.state.user.userTypeID === 2) {
     await next();
   }
