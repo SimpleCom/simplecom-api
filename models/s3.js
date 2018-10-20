@@ -26,10 +26,12 @@ class S3 {
    */
   static async hit(ctx) {
 
+    console.log('bucket hit', ctx.params);
+
     const bucket = ctx.params.bucket;
     const fileKey = ctx.params.key;
     const s3 = new aws.S3();
-    const params = {
+    const s3Params = {
       Bucket: `/${bucket}`,
       Key: fileKey,
     };
@@ -45,7 +47,7 @@ class S3 {
     console.log(res, dir);
     const file = fs.createWriteStream(`${dir}${fileKey}`);
 
-    s3.getObject(params).createReadStream().on('error', function(err){
+    s3.getObject(s3Params).createReadStream().on('error', function(err){
       console.log(err);
     }).pipe(file);
 
