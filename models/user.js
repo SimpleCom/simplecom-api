@@ -164,23 +164,6 @@ class User {
     ctx.body.root = 'Result';
   }
 
-  static async addLogo(ctx) {
-    console.log(ctx.request.body.files);
-    const imageFile = ctx.request.body.files.uploadFile;
-    console.log('image', imageFile);
-    const destination = `uploads/logos/${ctx.params.userID}/${imageFile.name}`;
-
-    await fs.copy(imageFile.path, destination)
-      .then(() => {
-        const response = {
-          'url': destination
-        }
-
-        ctx.body = response;
-      })
-      .catch(err => console.log(err))
-  }
-
   static async getList(ctx) {
     try {
       const [result] = await global.db.query(`select u.id, u.uname, o.name 

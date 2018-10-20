@@ -14,7 +14,6 @@
 
 const Koa = require('koa');            // Koa framework
 const body = require('koa-body');       // body parser
-const compose = require('koa-compose');    // middleware composer
 const compress = require('koa-compress');   // HTTP compression
 const session = require('koa-session');    // session for flash messages
 const mysql = require('mysql2/promise'); // fast mysql driver
@@ -23,9 +22,7 @@ const cors = require('koa2-cors');   // CORS for Koa 2
 const jwt = require('jsonwebtoken'); // JSON Web Token implementation
 const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
-const serve = require('koa-static');
 const mkdirp = require('mkdirp');
-const path = require('path');
 const Return = require('./models/return');
 
 const app = new Koa();
@@ -159,13 +156,6 @@ app.use(koaLogger(logger, {}));
 
 // ------------ routing
 
-// public (unsecured) modules first
-let dirs = path.join(__dirname, '/logos');
-console.log(dirs);
-mkdirp.sync(dirs);
-dirs = 'logos';
-app.use(serve(dirs));
-
 app.use(require('./routes/routes-root.js'));
 app.use(require('./routes/routes-auth.js'));
 app.use(require('./routes/routes-sync.js'));
@@ -201,6 +191,7 @@ app.use(async function verifyJwt(ctx, next) {
 
 app.use(require('./routes/routes-list.js'));
 app.use(require('./routes/routes-user.js'));
+app.use(require('./routes/routes-organization.js'));
 app.use(require('./routes/routes-codes.js'));
 app.use(require('./routes/routes-utility.js'));
 

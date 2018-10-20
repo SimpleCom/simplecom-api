@@ -52,6 +52,54 @@ class S3 {
     ctx.body = 'Success';
   }
 
+  // UPLOAD ORGANIZATION
+  static async uploadImage(filePath, fileName) {
+    // Read in the file, convert it to base64, store to S3
+    const data = (await new Promise((resolve, reject) => {       
+      fs.readFile(filePath,(err, data) => {
+        if (err) reject(err);
+        else resolve(data);
+      });
+    }));
+
+    const base64data = new Buffer(data, 'binary');
+
+    const s3 = new aws.S3();
+    return (await new Promise((resolve, reject) => {
+      s3.putObject({
+        Bucket: 'simplecom-logos',
+        Key: fileName,
+        Body: base64data,
+        ACL: 'public-read'
+      }, (err, data) => {
+          if (err) reject(err);
+          else resolve(data);
+      });
+    }));
+  }
+
+    // CREATE S3 BUCKET -- has errors
+    // const bucketUrl = (await new Promise((resolve, reject) => {
+    //   const params = {
+    //     Bucket: `simplecom-uploads`,
+    //     ACL: "public",
+    //     CreateBucketConfiguration: {
+    //       LocationConstraint: 'us-west-2'
+    //     }
+    //   };
+
+    //   s3.createBucket(params, function (err, data) {
+    //     if (err) reject(err);
+    //     else resolve(data);
+    //   });
+    // })).Location;
+
+    // const bucketNameRegex = /user-data-[a-z0-9\-]+/;
+    // const bucketName = bucketNameRegex.exec(bucketUrl)[0];
+    // console.log(bucketUrl);
+    // console.log(bucketName);
+    //}
+  
   static async createUserBucket() {
 
     const s3 = new aws.S3();
