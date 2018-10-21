@@ -73,6 +73,9 @@ class User {
         id: userID
       });
 
+      // IF PASSWORD, UPDATE PASSWORD
+      if (ctx.request.body.password) {await updatePassword(userID, ctx.request.body.password);} 
+
     ctx.body = Return.setReturn(result);
   }
 
@@ -190,36 +193,45 @@ class User {
     }
   }
 
-  static async updatePassword(ctx) {
-    //console.log(ctx);
-    // only admin can edit other user's password
-    // length > 8
-    const id = Number(ctx.params.userID);
-    const userType = ctx.params.userTypeID;
-    const pass = ctx.request.body.pass;
+  static async routeUpdatePassword(ctx) {
+    try {
+      //console.log(ctx);
+      // only admin can edit other user's password
+      // length > 8
+      const id = Number(ctx.params.userID);
+      const userType = ctx.params.userTypeID;
+      const password = ctx.request.body.password;
+      const requestUserType = ctx.state.user.userTypeID;
 
-    if (pass.length >= 8) {
+      // IS USER EDITING SELF?
       let editSelf = false;
       if (ctx.state.user.id === id) editSelf = true;
 
-      if (editSelf === true || userType == 2) {
-        try {
-          let newPassword = '';
-          while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
-          await global.db.query(`UPDATE user SET password 
-                                            WHERE id=:pass`, { pass: pass});
-          return "success";
-        } catch (e) {
-          return  [{error: 1}];
-        }
-
+      // CHECK PERMISSION TO CHANGE PASSWORD
+      if (editSelf === true || requestUserType == 2) {
+        ctx.body = await User.updatePassword(id, password);
       } else {
-        return 0;
+        ctx.throw(401,"Not Authorized");
       }
 
+    } catch ({status, message}) {
+      ctx.throw(status, message);
+      return 0;
+    }
+  }
 
-    } else
-    ctx.throw(401, 'Password needs to be longer than 8 characters.');
+
+  static async updatePassword(userID, password) {
+    console.log("running");
+
+      if (password && password.length >= 8) {
+        console.log("running if");
+          let newPassword = '';
+          while (newPassword.length < 10) newPassword = scrypt.kdfSync(password, {N: 16, r: 8, p: 2});
+          await global.db.query(`UPDATE user SET password=:newPassword WHERE id=:id`, {newPassword: newPassword.toString("base64"), id: userID});
+          console.log("Password updated");
+          return "Password updated";
+      } else throw {status: 400, message: 'Password needs to be longer than 8 characters.'};
   }
 
   static async getList(ctx) {
