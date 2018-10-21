@@ -10,15 +10,16 @@ const aws = require('aws-sdk');
 const mkdirp = require('mkdirp');
 const uuidv4 = require('uuid/v4');
 const Return = require('./return');
+const crypto = require('./crypto.js');
 const path = require('path');
 
 aws.config.update({
-  accessKeyId: process.env.AWS_ACCESS,
+  accessKeyId:     process.env.AWS_ACCESS,
   secretAccessKey: process.env.AWS_SECRET,
-  region: process.env.AWS_REGION
+  region:          process.env.AWS_REGION,
 });
 
-const AWS_LAMDA_FUNCTION_NAME = process.env.AWS_LAMDA_ARN.split(':').pop();
+const AWS_LAMBDA_FUNCTION_NAME = process.env.AWS_LAMBDA_ARN.split(':').pop();
 
 class S3 {
 
@@ -39,7 +40,7 @@ class S3 {
       };
 
       //Find bucket in the user table
-      const [[user]] = await global.db.query(
+      const [ [ user ] ] = await global.db.query(
         'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
         {sBucket: bucket, pBucket: bucket}
       );
@@ -68,10 +69,13 @@ class S3 {
   // UPLOAD ORGANIZATION
   static async uploadImage(filePath, fileName) {
     // Read in the file, convert it to base64, store to S3
-    const data = (await new Promise((resolve, reject) => {       
-      fs.readFile(filePath,(err, data) => {
-        if (err) reject(err);
-        else resolve(data);
+    const data = (await new Promise((resolve, reject) => {
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
       });
     }));
 
@@ -81,28 +85,26 @@ class S3 {
     return (await new Promise((resolve, reject) => {
       s3.putObject({
         Bucket: process.env.AWS_BUCKET,
-        Key: fileName,
-        Body: base64data,
-        ACL: 'public-read'
+        Key:    fileName,
+        Body:   base64data,
+        ACL:    'public-read',
       }, (err, data) => {
-          if (err) reject(err);
-          else resolve(data);
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
       });
     }));
   }
-  
+
   static async createUserBucket() {
-
-    const s3 = new aws.S3();
-
-
     const bucketUrl = await S3.createBucket(`user-data-${uuidv4()}`, 'private');
 
     const bucketNameRegex = /user-data-[a-z0-9\-]+/;
-    const bucketName = bucketNameRegex.exec(bucketUrl)[0];
+    const bucketName = bucketNameRegex.exec(bucketUrl)[ 0 ];
 
-    await S3.createLamdaPermission(bucketName);
-    await S3.createLamdaNotification(bucketName);
+    await S3.createLambdaNotification(bucketName);
 
     return bucketName;
   }
@@ -112,12 +114,12 @@ class S3 {
     const s3 = new aws.S3();
 
     const params = {
-      Bucket: bucketName
+      Bucket: bucketName,
     };
 
     return await new Promise(resolve => {
       s3.deleteBucket(params, function (err, data) {
-        if (err){
+        if (err) {
           console.log(`Unable to delete bucket`);
           resolve();
         } else {
@@ -135,58 +137,45 @@ class S3 {
         Bucket:                    bucketName,
         ACL:                       acl,
         CreateBucketConfiguration: {
-          LocationConstraint: process.env.AWS_REGION
-        }
+          LocationConstraint: process.env.AWS_REGION,
+        },
       };
 
       s3.createBucket(params, function (err, data) {
-        if (err) reject(err);
-        else resolve(data);
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
       });
     })).Location;
 
     return bucketUrl;
   }
 
-  static async createLamdaPermission(bucketName) {
-    const lambda = new aws.Lambda();
-
-    return await new Promise((resolve, reject) => {
-      const params = {
-        Action: "lambda:InvokeFunction",
-        FunctionName: process.env.AWS_LAMDA_ARN,
-        Principal: "s3.amazonaws.com",
-        SourceAccount: process.env.AWS_ACCOUNT_ID,
-        SourceArn: `arn:aws:s3:::${bucketName}`,
-        StatementId: `${AWS_LAMDA_FUNCTION_NAME}-${bucketName}`
-      };
-      lambda.addPermission(params, function(err, data) {
-        if (err) reject(err);
-        else resolve(data);
-      });
-    });
-  }
-
-  static async createLamdaNotification(bucketName) {
+  static async createLambdaNotification(bucketName) {
     const s3 = new aws.S3();
 
     return await new Promise((resolve, reject) => {
       const params = {
-        Bucket: bucketName,
+        Bucket:                    bucketName,
         NotificationConfiguration: {
           LambdaFunctionConfigurations: [
             {
-              Id: `${AWS_LAMDA_FUNCTION_NAME}-${bucketName}`,
-              LambdaFunctionArn: process.env.AWS_LAMDA_ARN,
-              Events: ['s3:ObjectCreated:CompleteMultipartUpload']
+              Id:                `${AWS_LAMBDA_FUNCTION_NAME}-${bucketName}`,
+              LambdaFunctionArn: process.env.AWS_LAMBDA_ARN,
+              Events:            [ 's3:ObjectCreated:CompleteMultipartUpload' ],
             },
-          ]
-        }
+          ],
+        },
       };
 
-      s3.putBucketNotificationConfiguration(params, function(err, data) {
-        if (err) reject(err);
-        else resolve(data);
+      s3.putBucketNotificationConfiguration(params, function (err, data) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data);
+        }
       });
     });
   }
