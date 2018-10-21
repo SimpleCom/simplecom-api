@@ -34,21 +34,21 @@ class List {
            WHERE l.userID = :userID`,
         {userID: ctx.state.user.id}
       );
+
+      console.log(list);
+
       const lists = Object.values(list.reduce((nestedList, value) => {
-        const contact = {
+        const contact = value.id ? [{
           id: value.id,
           name: value.name,
           email: value.email
-        };
+        }] : [];
 
-        nestedList[value.listID] = nestedList[value.listID] ?
-          nestedList[value.listID].contacts.push(contact) :
-          nestedList[value.listID] = {
+        return {...nestedList, [value.listID]: {
             id: value.listID,
             name: value.listName,
-            contacts: contact.id ? [contact] : []
-          };
-        return nestedList;
+            contacts: nestedList[value.listID] ? [...nestedList[value.listID].contacts, ...contact] : [...contact]
+          }};
       }, {}));
       console.log(lists);
       ctx.body = Return.setReturn(lists);
@@ -85,6 +85,11 @@ class List {
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
     }
+  }
+
+  static async deleteListUser(ctx) {
+    const contactID = ctx.params.contactID;
+
   }
 
   static async updateList(ctx) {
