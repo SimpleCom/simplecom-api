@@ -24,8 +24,6 @@ const bunyan = require('bunyan');       // logging
 const koaLogger = require('koa-bunyan');   // logging
 const mkdirp = require('mkdirp');
 const Return = require('./models/return');
-const router = require('koa-router')(); // router middleware for koa
-
 
 const app = new Koa();
 
