@@ -38,16 +38,16 @@ class List {
       console.log(list);
 
       const lists = Object.values(list.reduce((nestedList, value) => {
-        const contact = {
+        const contact = value.id ? [{
           id: value.id,
           name: value.name,
           email: value.email
-        };
+        }] : [];
 
         return {...nestedList, [value.listID]: {
             id: value.listID,
             name: value.listName,
-            contacts: nestedList[value.listID] ? [...nestedList[value.listID].contacts, contact] : [contact]
+            contacts: nestedList[value.listID] ? [...nestedList[value.listID].contacts, ...contact] : [...contact]
           }};
       }, {}));
       console.log(lists);
