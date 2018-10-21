@@ -53,7 +53,7 @@ class User {
   }
 
   static async update(ctx) {
-    const orgID = ctx.params.organizationID;
+    const userID = ctx.params.userID;
 
     const result = await global.db.query(`update user
                                           set uname            = :uname,
@@ -70,7 +70,7 @@ class User {
         securePasscode: ctx.request.body.securePasscode,
         publicPasscode: ctx.request.body.publicPasscode,
         distressPasscode: ctx.request.body.distressPasscode,
-        id: orgID
+        id: userID
       });
 
     ctx.body = Return.setReturn(result);
@@ -198,17 +198,9 @@ class User {
     const userType = ctx.params.userTypeID;
     const pass = ctx.request.body.pass;
 
-    console.log(pass.length);  // remove
-
     if (pass.length >= 8) {
       let editSelf = false;
       if (ctx.state.user.id === id) editSelf = true;
-      
-      console.log(ctx.state.user.id);
-      console.log(ctx.params.userID);
-      console.log(editSelf);
-      console.log(ctx.state.user.id === id);
-      console.log(typeof ctx.state.user.id, typeof id);
 
       if (editSelf === true || userType == 2) {
         try {
