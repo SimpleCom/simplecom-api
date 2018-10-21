@@ -35,8 +35,6 @@ class List {
         {userID: ctx.state.user.id}
       );
 
-      console.log(list);
-
       const lists = Object.values(list.reduce((nestedList, value) => {
         const contact = value.id ? [{
           id: value.id,
@@ -50,7 +48,6 @@ class List {
             contacts: nestedList[value.listID] ? [...nestedList[value.listID].contacts, ...contact] : [...contact]
           }};
       }, {}));
-      console.log(lists);
       ctx.body = Return.setReturn(lists);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);

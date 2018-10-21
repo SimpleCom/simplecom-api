@@ -29,7 +29,7 @@ const router = require('koa-router')(); // router middleware for koa
 
 const app = new Koa();
 
-// MySQL connection pool (set up on app initialisation)
+// MySQL connection pool (set up on app initialization)
 require('dotenv').config(); // loads environment variables from .env file (if available - eg dev env)
 const config = {
   host: process.env.DB_HOST,
