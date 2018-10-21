@@ -51,6 +51,7 @@
     "mkdirp": "^0.5.1",
     "mysql2": "^1.6.1",
     "mz": "^2.6.0",
+    "node-jsencrypt": "^1.0.0",
     "node-rsa": "^0.4.2",
     "nodejs-info": "^1.2.0",
     "pdfkit": "^0.8.3",

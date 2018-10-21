@@ -32,38 +32,54 @@ class S3 {
   static async hit(ctx) {
     try {
       const bucket = ctx.params.bucket;
-      const fileKey = ctx.params.key;
-      const s3 = new aws.S3();
-      const s3Params = {
-        Bucket: `/${bucket}`,
-        Key: fileKey,
-      };
+      const s3Path = ctx.params.key;
+
+      const [ s3UserId, codeType, filename  ] = s3Path.split('/');
 
       //Find bucket in the user table
       const [ [ user ] ] = await global.db.query(
-        'Select id from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
-        {sBucket: bucket, pBucket: bucket}
+        'Select id, secureRsaPrivateKey, publicRsaPrivateKey from user where secureS3Bucket = :sBucket or publicS3Bucket = :pBucket',
+        { sBucket: bucket, pBucket: bucket },
       );
 
-      const fileSplit = fileKey.split('/');
-      fileSplit.shift();
-      const fileName = fileSplit.pop();
-      const dirAdd = fileSplit.join('/');
-      const dir = path.join(__dirname, `/../decrypt/${user.id}/${dirAdd}/`);
+      if (!user || user.id !== parseInt(s3UserId)) {
+        ctx.throw(400, 'Bucket not associated with a user');
+        return;
+      }
 
-      mkdirp.sync(dir);
+      const { id, secureRsaPrivateKey, publicRsaPrivateKey } = user;
 
-      const file = fs.createWriteStream(`${dir}${fileName}`);
+      const fileContents = await S3.downloadFile(bucket, s3Path);
 
-      s3.getObject(s3Params, (error, data) => {
-        console.log('data');
-      }).createReadStream().on('error', function (err) {
-        console.log(err);
-      }).pipe(file);
+      const isSecure = codeType !== 'p';
+      const rsaPrivateKey = isSecure ? secureRsaPrivateKey : publicRsaPrivateKey;
 
+      const plainTextFile = crypto.rsaDecrypt(rsaPrivateKey, fileContents);
+
+      console.log(plainTextFile);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
     }
+  }
+
+  static async downloadFile(bucket, s3Path) {
+    const s3 = new aws.S3();
+    const s3Params = {
+      Bucket: bucket,
+      Key:    s3Path,
+    };
+
+    const data = await new Promise((resolve, reject) => {
+      s3.getObject(s3Params, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data.Body);
+        }
+      });
+    });
+
+    return data;
   }
 
   // UPLOAD ORGANIZATION

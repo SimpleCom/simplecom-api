@@ -6,6 +6,7 @@
 
 const router = require('koa-router')(); // router middleware for koa
 const s3 = require('../models/s3.js');
+const Crypto = require('../models/crypto');
 
 router.get('/', function getRoot(ctx) {
     // root element just returns uri's for principal resources (in preferred format)
