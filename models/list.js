@@ -34,6 +34,9 @@ class List {
            WHERE l.userID = :userID`,
         {userID: ctx.state.user.id}
       );
+
+      console.log(list);
+
       const lists = Object.values(list.reduce((nestedList, value) => {
         const contact = {
           id: value.id,
@@ -41,14 +44,11 @@ class List {
           email: value.email
         };
 
-        nestedList[value.listID] = nestedList[value.listID] ?
-          nestedList[value.listID].contacts.push(contact) :
-          nestedList[value.listID] = {
+        return {...nestedList, [value.listID]: {
             id: value.listID,
             name: value.listName,
-            contacts: contact.id ? [contact] : []
-          };
-        return nestedList;
+            contacts: nestedList[value.listID] ? [...nestedList[value.listID].contacts, contact] : [contact]
+          }};
       }, {}));
       console.log(lists);
       ctx.body = Return.setReturn(lists);
