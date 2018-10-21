@@ -8,7 +8,7 @@ const router = require('koa-router')(); // router middleware for koa
 const user = require('../models/user.js');
 
 router.prefix('/user/');
-router.put('/:userID/password', user.routeUpdatePassword);     // update a user password
+router.put('/:userID/password', user.updatePassword);     // update a user password
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
 

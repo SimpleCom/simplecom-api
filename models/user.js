@@ -74,7 +74,7 @@ class User {
       });
 
       // IF PASSWORD, UPDATE PASSWORD
-      if (ctx.request.body.password) {await updatePassword(userID, ctx.request.body.password);} 
+      if (ctx.request.body.password) {await User.doUpdatePassword(userID, ctx.request.body.password);} 
 
     ctx.body = Return.setReturn(result);
   }
@@ -193,7 +193,7 @@ class User {
     }
   }
 
-  static async routeUpdatePassword(ctx) {
+  static async updatePassword(ctx) {
     try {
       //console.log(ctx);
       // only admin can edit other user's password
@@ -209,7 +209,7 @@ class User {
 
       // CHECK PERMISSION TO CHANGE PASSWORD
       if (editSelf === true || requestUserType == 2) {
-        ctx.body = await User.updatePassword(id, password);
+        ctx.body = await User.doUpdatePassword(id, password);
       } else {
         ctx.throw(401,"Not Authorized");
       }
@@ -221,7 +221,7 @@ class User {
   }
 
 
-  static async updatePassword(userID, password) {
+  static async doUpdatePassword(userID, password) {
     console.log("running");
 
       if (password && password.length >= 8) {
