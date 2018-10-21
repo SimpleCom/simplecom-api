@@ -206,7 +206,7 @@ class User {
       // CHECK PERMISSION TO CHANGE PASSWORD
       if (editSelf === true || requestUserType == 2) {
         const ret = await User.doUpdatePassword(id, password);
-        Return.setReturn(ret);
+        ctx.body = Return.setReturn(ret);
       } else {
         ctx.throw(401,"Not Authorized");
       }
