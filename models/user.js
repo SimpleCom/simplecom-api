@@ -51,6 +51,29 @@ class User {
     }
   }
 
+  static async routeUpdate(ctx) {
+    try {
+      // only admin can edit other users
+      const userID = Number(ctx.params.userID);
+      const requestUserType = ctx.state.user.userTypeID;
+
+      // IS USER EDITING SELF?
+      let editSelf = false;
+      if (ctx.state.user.id === userID) editSelf = true;
+
+      // CHECK PERMISSION TO CHANGE PASSWORD
+      if (editSelf === true || requestUserType == 2) {
+        // NOT CALLING RETURN.SETRETURN BECAUSE SUB FUNCTION CALLS IT
+        ctx.body = await User.update(ctx);
+      } else {
+        ctx.throw(401,"Not Authorized");
+      }
+    } catch ({status, message}) {
+      ctx.throw(status, message);
+      return 0;
+    }
+  }
+
   static async update(ctx) {
     const userID = ctx.params.userID;
 
@@ -75,7 +98,7 @@ class User {
       // IF PASSWORD, UPDATE PASSWORD
       if (ctx.request.body.password) {await User.doUpdatePassword(userID, ctx.request.body.password);} 
 
-    ctx.body = Return.setReturn(result);
+    return Return.setReturn(result);
   }
 
   /**
@@ -205,17 +228,16 @@ class User {
 
       // CHECK PERMISSION TO CHANGE PASSWORD
       if (editSelf === true || requestUserType == 2) {
-        ctx.body = await User.doUpdatePassword(id, password);
+        const ret = await User.doUpdatePassword(id, password);
+        ctx.body = Return.setReturn(ret);
       } else {
         ctx.throw(401,"Not Authorized");
       }
-
     } catch ({status, message}) {
       ctx.throw(status, message);
       return 0;
     }
   }
-
 
   static async doUpdatePassword(userID, password) {
       if (password && password.length >= 8) {
@@ -237,7 +259,6 @@ class User {
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }
-
   }
 
   static async getUserTypes(ctx) {
@@ -249,9 +270,7 @@ class User {
       ctx.body = Return.setReturn(null, false, e);
       throw e;
     }
-
   }
-
 }
 
 const makeCode = function (len = 6) {

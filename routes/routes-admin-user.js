@@ -13,8 +13,6 @@ router.get('/types', user.getUserTypes); // get all userTypes
 router.get('/:userID', user.getUser);    // get one user
 
 router.post('/register', user.register); // add a user
-
-router.put('/:userID', user.update);     // update a user
 router.put('/:userID/status', user.setStatus);   // update a user status
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -  */
