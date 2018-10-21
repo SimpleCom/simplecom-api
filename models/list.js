@@ -87,6 +87,11 @@ class List {
     }
   }
 
+  static async deleteListUser(ctx) {
+    const contactID = ctx.params.contactID;
+
+  }
+
   static async updateList(ctx) {
     try {
       await global.db.query(
