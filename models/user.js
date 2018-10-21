@@ -28,7 +28,6 @@ class User {
   }
 
   static async getUser(ctx) {
-    console.log('getUser');
     try {
       const user = await User.get(ctx.params.userID);
       ctx.body = Return.setReturn(user);
@@ -176,7 +175,6 @@ class User {
   }
 
   static async register(ctx) {
-    console.log('register');
     try {
       let newPassword = '';
       while (newPassword.length < 10) newPassword = scrypt.kdfSync(ctx.request.body.pass, {N: 16, r: 8, p: 2});
@@ -195,11 +193,9 @@ class User {
 
   static async updatePassword(ctx) {
     try {
-      //console.log(ctx);
       // only admin can edit other user's password
       // length > 8
       const id = Number(ctx.params.userID);
-      const userType = ctx.params.userTypeID;
       const password = ctx.request.body.password;
       const requestUserType = ctx.state.user.userTypeID;
 
@@ -222,14 +218,10 @@ class User {
 
 
   static async doUpdatePassword(userID, password) {
-    console.log("running");
-
       if (password && password.length >= 8) {
-        console.log("running if");
           let newPassword = '';
           while (newPassword.length < 10) newPassword = scrypt.kdfSync(password, {N: 16, r: 8, p: 2});
           await global.db.query(`UPDATE user SET password=:newPassword WHERE id=:id`, {newPassword: newPassword.toString("base64"), id: userID});
-          console.log("Password updated");
           return "Password updated";
       } else throw {status: 400, message: 'Password needs to be longer than 8 characters.'};
   }
@@ -252,7 +244,6 @@ class User {
     try {
       const [result] = await global.db.query(`select id, name
                                               from userType`);
-      console.log('res', result);
       ctx.body = Return.setReturn(result);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
