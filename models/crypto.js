@@ -3,6 +3,7 @@
 const rsa = require('node-rsa');
 // const fs = require('fs-extra');
 const JSEncrypt = require('node-jsencrypt');
+const CryptoJS = require("crypto-js");
 
 // const forge = require('node-forge');
 // forge.options.usePureJavaScript = true;
@@ -61,27 +62,27 @@ class Crypto {
    * @param {buffer} buffer - data to be decrypted
    * @returns {Object} plaintext data
    */
-  static rsaDecrypt(privateKey, buffer) {
+  static rsaDecrypt(privateKey, fileContents) {
     try {
       const jsEncrypt = new JSEncrypt();
       jsEncrypt.setPrivateKey(privateKey);
-      return jsEncrypt.decrypt(buffer.toString());
+      return jsEncrypt.decrypt(fileContents);
     } catch (e) {
       console.log(e);
     }
   }
 
   /**
-   * TODO: aesDecrypt(fs, pass)
-   * Decrypts a stream using AES passphrase
+   * Decrypts a string using AES passphrase
    *
-   * @param {Object} fs - filestream - file to decrypt
-   * @param {string} pass - AES passphrase
-   * @returns {Object} decrypted filestream
+   * @param {string} key - AES passphrase
+   * @param {string} fileContents - string to decrypt
+   * @returns {Object} decrypted string
    */
-
-  // Helpful link for decrypting file streams:
-  // http://lollyrock.com/articles/nodejs-encryption/
+  static aesDecrypt(key, fileContents){
+    return CryptoJS.AES.decrypt(fileContents, key)
+      .toString(CryptoJS.enc.Utf8);
+  }
 
 }
 

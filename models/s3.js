@@ -49,13 +49,20 @@ class S3 {
 
       const { id, secureRsaPrivateKey, publicRsaPrivateKey } = user;
 
-      const fileContents = await S3.downloadFile(bucket, s3Path);
-
       const isSecure = codeType !== 'p';
       const rsaPrivateKey = isSecure ? secureRsaPrivateKey : publicRsaPrivateKey;
 
-      const plainTextFile = crypto.rsaDecrypt(rsaPrivateKey, fileContents);
+      const fileContents = await S3.downloadFile(bucket, s3Path);
 
+      // TODO: Figure out how to store files in database until we receive the final message and then decrypt them all at once. Do images have seperate keys?
+      // TODO: Remove next line. It has a hardcoded message that corresponds with the key we got above.
+      const message = await S3.downloadFile(bucket, '2/p/M-2-T-0.txt');
+
+      // TODO: Figure out if lambda notification is a message or key file and call correct function
+      const aesKey = crypto.rsaDecrypt(rsaPrivateKey, fileContents);
+      const plainTextFile = crypto.aesDecrypt(aesKey, message);
+
+      console.log(aesKey);
       console.log(plainTextFile);
     } catch (e) {
       ctx.body = Return.setReturn(null, false, e);
@@ -74,7 +81,7 @@ class S3 {
         if (err) {
           reject(err);
         } else {
-          resolve(data.Body);
+          resolve(data.Body.toString());
         }
       });
     });
